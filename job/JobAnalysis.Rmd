@@ -56,6 +56,7 @@ jobs <- kaggleData %>%
 cat("Clean sample size N:", nrow(jobs), "\n")
 ```
 
+I remove the EEO Legal Boilerplate as well.
 
 ```{r}
 library(quanteda)
@@ -67,7 +68,8 @@ leakage_words <- c(
   "usd", "dollar", "dollars", "hour", "hourly", "hr", "year", "yearly", "yr",
   "annum", "annual", "annually", "month", "monthly", "week", "weekly", "k",
   "range", "rate", "rates", "ote", "commission", "commissions", "equity",
-  "stipend", "401k", "401", "benefits", "competitive", "doe"
+  "stipend", "401k", "401", "benefits", "competitive", "doe","job_id", "eeo", 
+  "discrimin", "race", "religion", "citizenship", "opportun", "unlaw"
 )
 
 # 2. Tokenize and build unigrams + bigrams (captures phrases like "machine_learning")
@@ -99,10 +101,12 @@ cat("Controls:", p_ctrl, "| Text features:", p_text, "| Total p:", ncol(X_full),
 ```
 
 
+First penalised regression models.
 
 ```{r}
 library(glmnet)
 library(irlba)
+library(Matrix)
 
 set.seed(42)
 train_idx <- sample(seq_len(nrow(X_full)), size = floor(0.8 * nrow(X_full)))
@@ -124,7 +128,7 @@ cv_ridge   <- cv.glmnet(X_tr, y_tr, alpha = 0,   penalty.factor = pf_base)
 cv_lasso   <- cv.glmnet(X_tr, y_tr, alpha = 1,   penalty.factor = pf_base)
 cv_elastic <- cv.glmnet(X_tr, y_tr, alpha = 0.5, penalty.factor = pf_base)
 
-# Adaptive Lasso: use Ridge estimates on text columns as initial weights
+# Adaptive Lasso (Ridge initial weights on text columns)
 ridge_coefs  <- as.numeric(coef(cv_ridge, s = "lambda.min"))[-1]
 adapt_w_text <- 1 / (abs(ridge_coefs[(p_ctrl + 1):ncol(X_full)]) + 1e-7)
 pf_adapt     <- c(rep(0, p_ctrl), adapt_w_text)
@@ -134,8 +138,12 @@ pred_ridge   <- as.numeric(predict(cv_ridge,   s = "lambda.min", newx = X_te))
 pred_lasso   <- as.numeric(predict(cv_lasso,   s = "lambda.min", newx = X_te))
 pred_elastic <- as.numeric(predict(cv_elastic, s = "lambda.min", newx = X_te))
 pred_adapt   <- as.numeric(predict(cv_adapt,   s = "lambda.min", newx = X_te))
+```
 
-# --- 2. Factor-Augmented Regression (Dense PCA on text only + controls) ---
+Now factor models.
+
+```{r}
+# --- 2. Factor-Augmented Regression (Unsupervised PCA via irlba) ---
 X_text_tr <- X_text[train_idx, ]
 X_text_te <- X_text[-train_idx, ]
 
@@ -144,13 +152,124 @@ pca_fit <- prcomp_irlba(X_text_tr, n = r_max, center = TRUE, scale. = TRUE)
 F_tr    <- pca_fit$x
 F_te    <- predict(pca_fit, newdata = X_text_te)
 
-# Evaluate e.g. r = 30 factors (you can loop r = 5, 10, 20, 30, 50 via CV on train)
 r_opt   <- 30
 fa_tr   <- cbind(ols_df_tr, as.data.frame(F_tr[, 1:r_opt]))
 fa_te   <- cbind(ols_df_te, as.data.frame(F_te[, 1:r_opt]))
 fit_fa  <- lm(y_tr ~ ., data = fa_tr)
 pred_fa <- predict(fit_fa, newdata = fa_te)
 
+# --- 3. NEW: Partial Least Squares (Supervised Sparse PLS1) ---
+fit_sparse_pls <- function(X_train, y_train, X_test, ncomp = 30) {
+  # Standardize using training mean & sd without densifying X
+  mu <- Matrix::colMeans(X_train)
+  sd <- sqrt(pmax(0, Matrix::colMeans(X_train^2) - mu^2))
+  sd[sd == 0] <- 1
+  
+  Ax    <- function(v) { vs <- v / sd; as.numeric(X_train %*% vs) - sum(mu * vs) }
+  Atx   <- function(u) { (as.numeric(Matrix::crossprod(X_train, u)) - sum(u) * mu) / sd }
+  Ax_te <- function(v) { vs <- v / sd; as.numeric(X_test  %*% vs) - sum(mu * vs) }
+  
+  s <- Atx(y_train - mean(y_train))
+  T_tr <- matrix(0, nrow = nrow(X_train), ncol = ncomp)
+  R_mat <- matrix(0, nrow = ncol(X_train), ncol = ncomp)
+  V_mat <- matrix(0, nrow = ncol(X_train), ncol = ncomp)
+  
+  for (m in seq_len(ncomp)) {
+    r <- s
+    t_vec <- Ax(r)
+    if (m > 1) {
+      a_t   <- as.numeric(crossprod(T_tr[, 1:(m - 1), drop = FALSE], t_vec))
+      t_vec <- t_vec - as.numeric(T_tr[, 1:(m - 1), drop = FALSE] %*% a_t)
+      r     <- r     - as.numeric(R_mat[, 1:(m - 1), drop = FALSE] %*% a_t)
+    }
+    t_norm <- sqrt(sum(t_vec^2))
+    t_vec  <- t_vec / t_norm
+    r      <- r / t_norm
+    T_tr[, m]  <- t_vec
+    R_mat[, m] <- r
+    
+    v_vec <- Atx(t_vec)
+    if (m > 1) {
+      a_v   <- as.numeric(crossprod(V_mat[, 1:(m - 1), drop = FALSE], v_vec))
+      v_vec <- v_vec - as.numeric(V_mat[, 1:(m - 1), drop = FALSE] %*% a_v)
+    }
+    v_vec <- v_vec / sqrt(sum(v_vec^2))
+    V_mat[, m] <- v_vec
+    s <- s - v_vec * sum(v_vec * s)
+  }
+  
+  T_te <- matrix(0, nrow = nrow(X_test), ncol = ncomp)
+  for (m in seq_len(ncomp)) T_te[, m] <- Ax_te(R_mat[, m])
+  
+  colnames(T_tr) <- colnames(T_te) <- paste0("PLS_", seq_len(ncomp))
+  list(T_tr = T_tr, T_te = T_te)
+}
+
+# --- 3. Partial Least Squares with 5-Fold CV to Select Optimal M ---
+set.seed(42)
+K      <- 5
+m_grid <- c(1, 2, 3, 5, 8, 10, 15, 20, 25, 30)
+folds  <- sample(rep(seq_len(K), length.out = length(y_tr)))
+
+cv_mspe <- matrix(0, nrow = K, ncol = length(m_grid))
+colnames(cv_mspe) <- paste0("M=", m_grid)
+
+for (k in seq_len(K)) {
+  va_k <- which(folds == k)
+  tr_k <- which(folds != k)
+  
+  # 1. Fit controls-only OLS inside the 4 training folds to get clean residuals
+  ols_k <- lm(y_tr[tr_k] ~ ., data = ols_df_tr[tr_k, , drop = FALSE])
+  
+  # 2. Extract all max(m_grid) = 30 PLS directions ONCE for this fold
+  pls_k <- fit_sparse_pls(
+    X_train = X_text_tr[tr_k, ],
+    y_train = resid(ols_k),
+    X_test  = X_text_tr[va_k, ],
+    ncomp   = max(m_grid)
+  )
+  
+  # 3. Evaluate each candidate M on the held-out fold
+  for (j in seq_along(m_grid)) {
+    m <- m_grid[j]
+    df_tr_m <- cbind(ols_df_tr[tr_k, , drop = FALSE], as.data.frame(pls_k$T_tr[, 1:m, drop = FALSE]))
+    df_va_m <- cbind(ols_df_tr[va_k, , drop = FALSE], as.data.frame(pls_k$T_te[, 1:m, drop = FALSE]))
+    
+    mod_m  <- lm(y_tr[tr_k] ~ ., data = df_tr_m)
+    pred_m <- suppressWarnings(predict(mod_m, newdata = df_va_m))
+    cv_mspe[k, j] <- mean((pred_m - y_tr[va_k])^2)
+  }
+}
+
+# Select M that minimizes 5-fold CV MSPE
+mean_cv_mspe <- colMeans(cv_mspe)
+m_opt        <- m_grid[which.min(mean_cv_mspe)]
+print(round(mean_cv_mspe, 4))
+cat("Optimal number of PLS components (M_opt):", m_opt, "\n")
+
+# Refit PLS on the full training set using m_opt and evaluate on the test set
+pls_full <- fit_sparse_pls(X_text_tr, resid(fit_ols), X_text_te, ncomp = m_opt)
+
+fit_pls_cv  <- lm(y_tr ~ ., data = cbind(ols_df_tr, as.data.frame(pls_full$T_tr)))
+pred_pls_cv <- predict(fit_pls_cv, newdata = cbind(ols_df_te, as.data.frame(pls_full$T_te)))
+
+# --- 4. NEW: Hybrid Factor-Augmented Penalized Regression ---
+# Combine controls + 30 PCA factors (unpenalized) + raw text terms (penalized)
+X_hyb_tr <- cbind(X_ctrl[train_idx, ],  Matrix(F_tr[, 1:r_opt], sparse = TRUE), X_text_tr)
+X_hyb_te <- cbind(X_ctrl[-train_idx, ], Matrix(F_te[, 1:r_opt], sparse = TRUE), X_text_te)
+
+pf_hyb <- c(rep(0, p_ctrl), rep(0, r_opt), rep(1, p_text))
+
+cv_hyb_lasso   <- cv.glmnet(X_hyb_tr, y_tr, alpha = 1,   penalty.factor = pf_hyb)
+cv_hyb_elastic <- cv.glmnet(X_hyb_tr, y_tr, alpha = 0.5, penalty.factor = pf_hyb)
+
+pred_hyb_lasso   <- as.numeric(predict(cv_hyb_lasso,   s = "lambda.min", newx = X_hyb_te))
+pred_hyb_elastic <- as.numeric(predict(cv_hyb_elastic, s = "lambda.min", newx = X_hyb_te))
+```
+
+The performance table.
+
+```{r}
 # --- Evaluation Table (MSPE and Out-of-Sample R^2) ---
 eval_model <- function(pred, actual) {
   mspe <- mean((pred - actual)^2)
@@ -159,17 +278,24 @@ eval_model <- function(pred, actual) {
 }
 
 results <- rbind(
-  Baseline_OLS   = eval_model(pred_ols,     y_te),
-  Factor_PCA_30  = eval_model(pred_fa,      y_te),
-  Ridge          = eval_model(pred_ridge,   y_te),
-  Lasso          = eval_model(pred_lasso,   y_te),
-  Elastic_Net    = eval_model(pred_elastic, y_te),
-  Adaptive_Lasso = eval_model(pred_adapt,   y_te)
+  Baseline_OLS     = eval_model(pred_ols,         y_te),
+  Factor_PCA_30    = eval_model(pred_fa,          y_te),
+  Factor_PLS_CV    = eval_model(pred_pls_cv,      y_te),
+  Ridge            = eval_model(pred_ridge,       y_te),
+  Lasso            = eval_model(pred_lasso,       y_te),
+  Elastic_Net      = eval_model(pred_elastic,     y_te),
+  Adaptive_Lasso   = eval_model(pred_adapt,       y_te),
+  Hybrid_FA_Lasso  = eval_model(pred_hyb_lasso,   y_te),
+  Hybrid_FA_ENet   = eval_model(pred_hyb_elastic, y_te)
 )
 print(round(results, 4))
-barplot((results[,1]))
-barplot((results[,2]))
+barplot(results[,1])
+barplot(results[,2])
 
+plot(m_grid, mean_cv_mspe, type = "b", pch = 19,
+     xlab = "Number of PLS Components (M)", ylab = "5-Fold CV MSPE",
+     main = paste0("PLS Cross-Validation Error (Optimal M = ", m_opt, ")"))
+abline(v = m_opt, col = "red", lty = 2)
 ```
 
 ```{r}
@@ -196,6 +322,7 @@ cat("\nTop 15 Lowest-Wage Terms:\n")
 print(round(sort(text_b, decreasing = FALSE)[1:15], 4))
 
 ```
+
 Now again to see sparsity vs. prediction trade-off using s="lambda.1se" (1-standard-error rule)
 
 ```{r}
