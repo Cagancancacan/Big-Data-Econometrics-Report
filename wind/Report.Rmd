@@ -1,0 +1,141 @@
+---
+title: "Report"
+author: "Can"
+date: "2026-11-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r start}
+library(glmnet)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(lubridate)
+
+# 1. Load the target variable data
+train_power <- read.csv("train.csv", sep = "\t", stringsAsFactors = FALSE)
+
+# 2. Load and rename the 7 forecast matrices
+wf_files <- paste0("windforecasts_wf", 1:7, ".csv")
+
+wf_list <- lapply(seq_along(wf_files), function(i) {
+  df <- read.csv(wf_files[i], stringsAsFactors = FALSE)
+  # Rename columns so we know which farm the forecast belongs to
+  df %>% rename(
+    !!paste0("u_", i)  := u,
+    !!paste0("v_", i)  := v,
+    !!paste0("ws_", i) := ws,
+    !!paste0("wd_", i) := wd
+  )
+})
+
+# 3. Merge all 7 matrices horizontally by date and hors
+X_master <- reduce(wf_list, function(x, y) full_join(x, y, by = c("date", "hors")))
+
+# 4. Create the true target time to align with the training labels
+parse_gefcom_date <- function(d_string) { ymd_h(as.character(d_string)) }
+
+X_master <- X_master %>%
+  mutate(
+    issue_time = parse_gefcom_date(date),
+    target_time = issue_time + hours(hors)
+  )
+
+train_power <- train_power %>%
+  mutate(target_time = parse_gefcom_date(date))
+
+# Join X and Y on the exact target time and sort chronologically
+dataset <- inner_join(X_master, train_power, by = "target_time") %>%
+  arrange(target_time)
+
+```
+
+Adding lags and separating data to be used.
+
+```{r}
+# 1. Isolate the raw predictors (28 columns: 4 variables * 7 farms)
+predictor_cols <- grep("^(u|v|ws|wd)_", names(dataset), value = TRUE)
+X_raw <- dataset[, predictor_cols]
+
+# 2. Generate Non-Linear Features (Polynomials for Wind Speed)
+# Adds 14 new columns (ws^2 and ws^3 for all 7 farms)
+ws_cols <- grep("^ws_", predictor_cols, value = TRUE)
+for (ws in ws_cols) {
+  X_raw[[paste0(ws, "_sq")]] <- X_raw[[ws]]^2
+  X_raw[[paste0(ws, "_cb")]] <- X_raw[[ws]]^3
+}
+
+# X_raw now has 42 base features.
+X_matrix <- as.matrix(X_raw)
+
+# 3. Create the High-Dimensional Lagged Matrix
+p_lags <- 24  # 24 hours of autoregressive lags
+
+# The embed() function shifts the matrix. 
+# Column block 1 = time t (lag 0)
+# Column block 2 = time t-1 (lag 1) ... up to time t-24 (lag 24)
+X_high_dim <- embed(X_matrix, p_lags + 1)
+
+# Generate descriptive column names for the new 1050-column matrix
+base_names <- colnames(X_matrix)
+lag_suffixes <- rep(0:p_lags, each = length(base_names))
+colnames(X_high_dim) <- paste0(rep(base_names, p_lags + 1), "_lag", lag_suffixes)
+
+cat("Dimensions of High-Dimensional X:", dim(X_high_dim), "\n")
+# Output: [1] N_Observations 1050
+
+# 4. Align the Target Variable (wp1)
+# Because embed() drops the first 'p_lags' rows to create the lags, 
+# we must truncate the target vector to match.
+y_target <- dataset$wp1[(p_lags + 1):nrow(dataset)]
+```
+
+Run Elastic Net since there is a tonne of collinearity due to added hourly lags.
+
+```{r}
+# 1. Time-Series Train/Test Split (80% Train, 20% Test)
+# We do not use random sampling to preserve the temporal autocorrelation
+train_size <- floor(0.8 * nrow(X_high_dim))
+train_idx  <- 1:train_size
+test_idx   <- (train_size + 1):nrow(X_high_dim)
+
+# 2. Local Standardization
+# We scale the training data, and apply the exact same scaling parameters to the test data
+# to prevent look-ahead bias/data leakage.
+X_train_scaled <- scale(X_high_dim[train_idx, ])
+X_test_scaled  <- scale(X_high_dim[test_idx, ], 
+                        center = attr(X_train_scaled, "scaled:center"), 
+                        scale = attr(X_train_scaled, "scaled:scale"))
+
+y_train <- y_target[train_idx]
+y_test  <- y_target[test_idx]
+
+# 3. Train Elastic Net via Cross-Validation on the Training Set
+# alpha = 0.5 blends Ridge (handles collinear lags) and Lasso (drops irrelevant features)
+set.seed(333)
+cv_en <- cv.glmnet(X_train_scaled, y_train, alpha = 0.5)
+
+# 4. Evaluate Out-of-Sample Performance
+pred_en <- predict(cv_en, s = "lambda.min", newx = X_test_scaled)
+mspe_en <- mean((pred_en - y_test)^2, na.rm = TRUE)
+
+cat("Elastic Net Test MSPE:", mspe_en, "\n")
+
+# 5. Inspect Selected Features
+# See which of the 1,050 features survived the penalty
+en_coefs <- predict(cv_en, type = "coefficients", s = "lambda.min")
+active_features <- en_coefs[en_coefs[, 1] != 0, ]
+cat("Number of active features retained:", length(active_features) - 1, "\n")
+
+```
+

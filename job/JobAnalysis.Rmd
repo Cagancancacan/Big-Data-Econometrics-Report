@@ -1,0 +1,381 @@
+---
+title: "JobAnalysis"
+author: "Can"
+date: "2026-11-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Analysis for BDE Report
+
+In this markdown I explore the dataset of LinkedIn job postings from Kaggle.
+
+```{r}
+library(RKaggle)
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+kaggleData <- get_dataset("arshkon/linkedin-job-postings")
+
+```
+
+# Data Exploration
+
+Explore the data to see how it distributed/looks.
+
+```{r}
+# 2. Clean target variable (log annual USD base salary) and baseline controls
+jobs <- kaggleData %>%
+  filter(
+    currency == "USD",
+    compensation_type == "BASE_SALARY",
+    pay_period %in% c("YEARLY", "HOURLY", "MONTHLY"),
+    !is.na(normalized_salary),
+    !is.na(description),
+    nchar(description) > 100,                      # drop empty/stub ads
+    normalized_salary >= 20000,                    # drops un-annualized hourly errors
+    normalized_salary <= 500000                    # drops mis-multiplied scraping errors
+  ) %>%
+  mutate(
+    log_wage = log(normalized_salary),
+    full_text = paste(title, description),
+    # Clean control variables (replace NAs with explicit categories)
+    exp_level = replace_na(formatted_experience_level, "Not_Specified"),
+    work_type = replace_na(formatted_work_type, "Not_Specified"),
+    remote    = if_else(is.na(remote_allowed), 0L, 1L),
+    # Extract 2-letter US state from strings like "Austin, TX"
+    state     = replace_na(str_extract(location, ",\\s*([A-Z]{2})$", group = 1), "Other")
+  ) %>%
+  # Remove duplicate postings (same title + description) to avoid train/test leakage
+  distinct(title, description, .keep_all = TRUE)
+
+cat("Clean sample size N:", nrow(jobs), "\n")
+```
+
+
+```{r}
+library(quanteda)
+library(Matrix)
+
+# 1. Words that leak the target variable (salary ranges written in the ad text)
+leakage_words <- c(
+  "salary", "salaries", "pay", "paid", "compensation", "base", "bonus", "bonuses",
+  "usd", "dollar", "dollars", "hour", "hourly", "hr", "year", "yearly", "yr",
+  "annum", "annual", "annually", "month", "monthly", "week", "weekly", "k",
+  "range", "rate", "rates", "ote", "commission", "commissions", "equity",
+  "stipend", "401k", "401", "benefits", "competitive", "doe"
+)
+
+# 2. Tokenize and build unigrams + bigrams (captures phrases like "machine_learning")
+toks <- corpus(jobs, text_field = "full_text") %>%
+  tokens(remove_punct = TRUE, remove_numbers = TRUE, remove_symbols = TRUE, remove_url = TRUE) %>%
+  tokens_tolower() %>%
+  tokens_remove(c(stopwords("en"), leakage_words)) %>%
+  tokens_wordstem() %>%
+  tokens_ngrams(n = 1:2)
+
+# 3. Build DTM and prune extreme sparsity -> target p ~ 1,000 to 2,500 features
+dfm_mat <- dfm(toks) %>%
+  dfm_trim(min_docfreq = 0.01, max_docfreq = 0.80, docfreq_type = "prop")
+
+# TF-IDF weighting (alternative: dfm_weight(dfm_mat, scheme = "boolean") for 0/1 presence)
+X_text <- dfm_tfidf(dfm_mat) %>% as("dgCMatrix")
+X_text_bin <- dfm_weight(dfm_mat, scheme = "boolean") %>% as("dgCMatrix")
+
+# 4. Build sparse dummy matrix for controls (excluding intercept)
+X_ctrl <- sparse.model.matrix(~ exp_level + work_type + remote + state, data = jobs)[, -1]
+
+# Combine controls + text into one matrix
+X_full <- cbind(X_ctrl, X_text)
+y      <- jobs$log_wage
+
+p_ctrl <- ncol(X_ctrl)
+p_text <- ncol(X_text)
+cat("Controls:", p_ctrl, "| Text features:", p_text, "| Total p:", ncol(X_full), "\n")
+```
+
+
+
+```{r}
+library(glmnet)
+library(irlba)
+
+set.seed(42)
+train_idx <- sample(seq_len(nrow(X_full)), size = floor(0.8 * nrow(X_full)))
+
+X_tr <- X_full[train_idx, ];  X_te <- X_full[-train_idx, ]
+y_tr <- y[train_idx];         y_te <- y[-train_idx]
+
+# Keep controls unpenalized (0), penalize text features (1)
+pf_base <- c(rep(0, p_ctrl), rep(1, p_text))
+
+# --- 0. Baseline OLS (Controls only) ---
+ols_df_tr <- as.data.frame(as.matrix(X_ctrl[train_idx, ]))
+ols_df_te <- as.data.frame(as.matrix(X_ctrl[-train_idx, ]))
+fit_ols   <- lm(y_tr ~ ., data = ols_df_tr)
+pred_ols  <- predict(fit_ols, newdata = ols_df_te)
+
+# --- 1. Penalized Regressions (glmnet standardizes internally) ---
+cv_ridge   <- cv.glmnet(X_tr, y_tr, alpha = 0,   penalty.factor = pf_base)
+cv_lasso   <- cv.glmnet(X_tr, y_tr, alpha = 1,   penalty.factor = pf_base)
+cv_elastic <- cv.glmnet(X_tr, y_tr, alpha = 0.5, penalty.factor = pf_base)
+
+# Adaptive Lasso: use Ridge estimates on text columns as initial weights
+ridge_coefs  <- as.numeric(coef(cv_ridge, s = "lambda.min"))[-1]
+adapt_w_text <- 1 / (abs(ridge_coefs[(p_ctrl + 1):ncol(X_full)]) + 1e-7)
+pf_adapt     <- c(rep(0, p_ctrl), adapt_w_text)
+cv_adapt     <- cv.glmnet(X_tr, y_tr, alpha = 1, penalty.factor = pf_adapt)
+
+pred_ridge   <- as.numeric(predict(cv_ridge,   s = "lambda.min", newx = X_te))
+pred_lasso   <- as.numeric(predict(cv_lasso,   s = "lambda.min", newx = X_te))
+pred_elastic <- as.numeric(predict(cv_elastic, s = "lambda.min", newx = X_te))
+pred_adapt   <- as.numeric(predict(cv_adapt,   s = "lambda.min", newx = X_te))
+
+# --- 2. Factor-Augmented Regression (Dense PCA on text only + controls) ---
+X_text_tr <- X_text[train_idx, ]
+X_text_te <- X_text[-train_idx, ]
+
+r_max   <- 50
+pca_fit <- prcomp_irlba(X_text_tr, n = r_max, center = TRUE, scale. = TRUE)
+F_tr    <- pca_fit$x
+F_te    <- predict(pca_fit, newdata = X_text_te)
+
+# Evaluate e.g. r = 30 factors (you can loop r = 5, 10, 20, 30, 50 via CV on train)
+r_opt   <- 30
+fa_tr   <- cbind(ols_df_tr, as.data.frame(F_tr[, 1:r_opt]))
+fa_te   <- cbind(ols_df_te, as.data.frame(F_te[, 1:r_opt]))
+fit_fa  <- lm(y_tr ~ ., data = fa_tr)
+pred_fa <- predict(fit_fa, newdata = fa_te)
+
+# --- Evaluation Table (MSPE and Out-of-Sample R^2) ---
+eval_model <- function(pred, actual) {
+  mspe <- mean((pred - actual)^2)
+  r2   <- 1 - sum((actual - pred)^2) / sum((actual - mean(actual))^2)
+  c(MSPE = mspe, OOS_R2 = r2)
+}
+
+results <- rbind(
+  Baseline_OLS   = eval_model(pred_ols,     y_te),
+  Factor_PCA_30  = eval_model(pred_fa,      y_te),
+  Ridge          = eval_model(pred_ridge,   y_te),
+  Lasso          = eval_model(pred_lasso,   y_te),
+  Elastic_Net    = eval_model(pred_elastic, y_te),
+  Adaptive_Lasso = eval_model(pred_adapt,   y_te)
+)
+print(round(results, 4))
+barplot((results[,1]))
+barplot((results[,2]))
+
+```
+
+```{r}
+# 1. Count non-zero text coefficients (excluding intercept and controls)
+count_nz <- function(cv_mod) {
+  b <- as.numeric(coef(cv_mod, s = "lambda.min"))[-1]
+  sum(b[(p_ctrl + 1):length(b)] != 0)
+}
+
+cat("Non-zero text terms -> Ridge:", count_nz(cv_ridge),
+    "| Elastic Net:", count_nz(cv_elastic),
+    "| Lasso:", count_nz(cv_lasso),
+    "| Adaptive Lasso:", count_nz(cv_adapt), "\n")
+
+# 2. Sanity check: inspect the top 15 positive and negative Lasso text coefficients
+lasso_b <- as.numeric(coef(cv_lasso, s = "lambda.min"))[-1]
+text_b  <- lasso_b[(p_ctrl + 1):length(lasso_b)]
+names(text_b) <- colnames(X_text)
+
+cat("\nTop 15 Highest-Wage Terms:\n")
+print(round(sort(text_b, decreasing = TRUE)[1:15], 4))
+
+cat("\nTop 15 Lowest-Wage Terms:\n")
+print(round(sort(text_b, decreasing = FALSE)[1:15], 4))
+
+```
+Now again to see sparsity vs. prediction trade-off using s="lambda.1se" (1-standard-error rule)
+
+```{r}
+# Helper to evaluate any cv.glmnet object at "lambda.min" or "lambda.1se"
+eval_cv <- function(cv_mod, s_rule) {
+  pred <- as.numeric(predict(cv_mod, s = s_rule, newx = X_te))
+  mspe <- mean((pred - y_te)^2)
+  r2   <- 1 - sum((y_te - pred)^2) / sum((y_te - mean(y_te))^2)
+  b    <- as.numeric(coef(cv_mod, s = s_rule))[-1]
+  nz   <- sum(b[(p_ctrl + 1):length(b)] != 0)
+  c(MSPE = round(mspe, 4), OOS_R2 = round(r2, 4), NonZero_Text = nz)
+}
+
+sparsity_tradeoff <- rbind(
+  Lasso_min      = eval_cv(cv_lasso,   "lambda.min"),
+  Lasso_1se      = eval_cv(cv_lasso,   "lambda.1se"),
+  ElasticNet_min = eval_cv(cv_elastic, "lambda.min"),
+  ElasticNet_1se = eval_cv(cv_elastic, "lambda.1se"),
+  AdaptLasso_min = eval_cv(cv_adapt,   "lambda.min"),
+  AdaptLasso_1se = eval_cv(cv_adapt,   "lambda.1se")
+)
+
+print(sparsity_tradeoff)
+```
+
+
+
+```{r}
+library(desla)
+library(hdm)
+
+# 1. Check which target skills exist in your stemmed DTM
+candidates <- c("python", "sql", "excel", "cloud", "aws", "ai", "machin_learn",
+                "manag", "leadership", "communic", "sale", "nurs", "account")
+target_skills <- intersect(candidates, colnames(X_text))
+print(target_skills)
+
+# 2. For computational speed in desla, keep controls + top 500 text features (plus targets)
+top_terms <- names(sort(colSums(X_text > 0), decreasing = TRUE))[1:500]
+keep_text <- union(top_terms, target_skills)
+
+X_inf <- cbind(as.matrix(X_ctrl), as.matrix(X_text[, keep_text]))
+X_inf_bin  <- cbind(as.matrix(X_ctrl), as.matrix(X_text_bin[, keep_text]))
+
+H_idx <- which(colnames(X_inf) %in% target_skills)
+
+```
+
+```{r}
+# Runs valid high-dimensional inference on the columns in H_idx
+ds_fit <- rlassoEffects(x = X_inf, y = y, index = H_idx)
+summary(ds_fit)
+confint(ds_fit)
+```
+If X_inf is TF-IDF: A coefficient of 0.0418 for python means a 1-unit increase in the TF-IDF score of "python" is associated with an approximate $+4.2\%$ higher wage.
+If X_inf is binary 0/1: You can interpret 0.0418 directly as an approximate $+4.27\%$ ($e^{0.0418} - 1$) wage premium for mentioning Python in the ad.
+Here it is TF-IDF.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Extract estimates, p-values, and 95% CIs from ds_fit
+sum_tab <- summary(ds_fit)$coefficients
+ci_tab  <- confint(ds_fit)
+
+plot_df <- data.frame(
+  raw_skill = rownames(sum_tab),
+  estimate  = sum_tab[, "Estimate."],
+  p_val     = sum_tab[, "Pr(>|t|)"],
+  ci_low    = ci_tab[, 1],
+  ci_high   = ci_tab[, 2],
+  stringsAsFactors = FALSE
+)
+
+# 2. Map stemmed tokens to clean paper-ready labels
+label_map <- c(
+  python       = "Python",
+  manag        = "Management",
+  leadership   = "Leadership",
+  machin_learn = "Machine Learning",
+  sql          = "SQL",
+  ai           = "AI",
+  cloud        = "Cloud",
+  nurs         = "Nursing",
+  account      = "Accounting / Account",
+  sale         = "Sales",
+  communic     = "Communication",
+  excel        = "Excel"
+)
+
+bonf_alpha <- 0.05 / nrow(plot_df)
+
+plot_df <- plot_df %>%
+  mutate(
+    label = ifelse(raw_skill %in% names(label_map), label_map[raw_skill], raw_skill),
+    sig_group = case_when(
+      p_val < bonf_alpha ~ "Significant (Bonferroni p < 0.0042)",
+      p_val < 0.05       ~ "Significant (Nominal p < 0.05)",
+      TRUE               ~ "Not Significant"
+    ),
+    sig_group = factor(sig_group, levels = c(
+      "Significant (Bonferroni p < 0.0042)",
+      "Significant (Nominal p < 0.05)",
+      "Not Significant"
+    ))
+  )
+
+# 3. Build the coefficient plot
+p_skills <- ggplot(plot_df, aes(x = estimate, y = reorder(label, estimate), color = sig_group)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey40", linewidth = 0.6) +
+  geom_errorbarh(aes(xmin = ci_low, xmax = ci_high), height = 0.22, linewidth = 0.75) +
+  geom_point(size = 2.8) +
+  scale_color_manual(values = c(
+    "Significant (Bonferroni p < 0.0042)" = "#1B4F72",
+    "Significant (Nominal p < 0.05)"      = "#D4AC0D",
+    "Not Significant"                     = "#95A5A6"
+  )) +
+  labs(
+    title    = "Estimated Log-Wage Premia of Selected Labor Market Skills",
+    subtitle = "Double-Selection Lasso (rlassoEffects) with 95% Confidence Intervals",
+    x        = "Estimated Effect on Log Annual Wage (per 1-unit TF-IDF)",
+    y        = NULL,
+    color    = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    legend.position   = "bottom",
+    panel.grid.minor  = element_blank(),
+    plot.title        = element_text(face = "bold"),
+    axis.text.y       = element_text(color = "black", size = 10)
+  )
+
+print(p_skills)
+
+# 4. Export high-resolution figure for your PDF paper
+ggsave("skill_wage_premia.png", plot = p_skills, width = 7.5, height = 5, dpi = 300)
+# Or PDF for LaTeX:
+# ggsave("skill_wage_premia.pdf", plot = p_skills, width = 7.5, height = 5)
+```
+
+```{r}
+# Extract raw estimates and p-values from your rlassoEffects object
+res <- as.data.frame(summary(ds_fit)$coefficients)
+colnames(res) <- c("Estimate", "SE", "t_stat", "p_raw")
+
+# Apply multiple-testing adjustments across the M = 12 hypotheses
+res$p_bonf <- p.adjust(res$p_raw, method = "bonferroni")
+res$p_holm <- p.adjust(res$p_raw, method = "holm")
+
+# Flag significance at the 5% level under each rule
+res$sig_nominal <- res$p_raw  < 0.05
+res$sig_bonf    <- res$p_bonf < 0.05
+res$sig_holm    <- res$p_holm < 0.05
+
+# Sort from smallest to largest raw p-value
+res <- res[order(res$p_raw), ]
+print(res[, c("Estimate", "p_raw", "p_bonf", "p_holm", "sig_bonf", "sig_holm")], digits = 4)
+```
+
+```{r}
+# Simultaneous 95% confidence bands across all 12 skills (multiplier bootstrap)
+set.seed(42)
+ci_joint <- confint(ds_fit, level = 0.95, joint = TRUE)
+print(round(ci_joint, 4))
+```
+
+
+
+
+```{r}
+# 3. Estimate debiased coefficients and valid 95% confidence intervals
+desla_fit <- desla(X = X_inf, y = y, H = H_idx, alphas = 0.05)
+
+inf_table <- data.frame(
+  Skill    = colnames(X_inf)[H_idx],
+  Estimate = round(desla_fit$bhat, 4),
+  CI_Lower = round(desla_fit$intervals[, 1], 4),
+  CI_Upper = round(desla_fit$intervals[, 2], 4)
+)
+print(inf_table)
+```
+
