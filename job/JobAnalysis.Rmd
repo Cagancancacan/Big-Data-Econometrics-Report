@@ -28,7 +28,11 @@ kaggleData <- get_dataset("arshkon/linkedin-job-postings")
 Explore the data to see how it distributed/looks.
 
 ```{r}
+# Put this at the top of your Data Exploration chunk (set to Inf for the full dataset)
 # 2. Clean target variable (log annual USD base salary) and baseline controls
+
+N_sample <- 20000
+
 jobs <- kaggleData %>%
   filter(
     currency == "USD",
@@ -53,7 +57,17 @@ jobs <- kaggleData %>%
   # Remove duplicate postings (same title + description) to avoid train/test leakage
   distinct(title, description, .keep_all = TRUE)
 
-cat("Clean sample size N:", nrow(jobs), "\n")
+# Downsample to N_sample rows reproducibly
+set.seed(42)
+if (nrow(jobs) > N_sample) {
+  jobs <- slice_sample(jobs, n = N_sample)
+}
+
+# Free the raw Kaggle table from RAM immediately
+rm(kaggleData)
+gc()
+
+cat("Working sample size N:", nrow(jobs), "\n")
 ```
 
 I remove the EEO Legal Boilerplate as well.
@@ -62,17 +76,19 @@ I remove the EEO Legal Boilerplate as well.
 library(quanteda)
 library(Matrix)
 
-# 1. Words that leak the target variable (salary ranges written in the ad text)
+binary <- FALSE
+
+# 1. Unigram leakage & boilerplate (use * wildcards to catch all word forms before stemming)
 leakage_words <- c(
   "salary", "salaries", "pay", "paid", "compensation", "base", "bonus", "bonuses",
-  "usd", "dollar", "dollars", "hour", "hourly", "hr", "year", "yearly", "yr",
+  "usd", "dollar", "dollars", "hour", "hourly", "hr", "year", "years", "yearly", "yr",
   "annum", "annual", "annually", "month", "monthly", "week", "weekly", "k",
   "range", "rate", "rates", "ote", "commission", "commissions", "equity",
-  "stipend", "401k", "401", "benefits", "competitive", "doe","job_id", "eeo", 
-  "discrimin", "race", "religion", "citizenship", "opportun", "unlaw"
+  "stipend", "401k", "401", "benefits", "competitive", "doe",
+  "eeo", "discrimin*", "race", "religion", "citizenship", "opportun*", "unlaw*"
 )
 
-# 2. Tokenize and build unigrams + bigrams (captures phrases like "machine_learning")
+# 2. Tokenize and build unigrams + bigrams
 toks <- corpus(jobs, text_field = "full_text") %>%
   tokens(remove_punct = TRUE, remove_numbers = TRUE, remove_symbols = TRUE, remove_url = TRUE) %>%
   tokens_tolower() %>%
@@ -80,13 +96,18 @@ toks <- corpus(jobs, text_field = "full_text") %>%
   tokens_wordstem() %>%
   tokens_ngrams(n = 1:2)
 
-# 3. Build DTM and prune extreme sparsity -> target p ~ 1,000 to 2,500 features
+# 3. Build DTM, remove bigram scraping artifacts, and trim sparsity
 dfm_mat <- dfm(toks) %>%
+  dfm_remove(c("job_id", "job_detail", "job_shift")) %>%
   dfm_trim(min_docfreq = 0.01, max_docfreq = 0.80, docfreq_type = "prop")
 
 # TF-IDF weighting (alternative: dfm_weight(dfm_mat, scheme = "boolean") for 0/1 presence)
-X_text <- dfm_tfidf(dfm_mat) %>% as("dgCMatrix")
-X_text_bin <- dfm_weight(dfm_mat, scheme = "boolean") %>% as("dgCMatrix")
+if (binary == FALSE) {
+  X_text <- dfm_tfidf(dfm_mat) %>% as("dgCMatrix")
+} else {
+  X_text_bin <- dfm_weight(dfm_mat, scheme = "boolean") %>% as("dgCMatrix")
+}
+
 
 # 4. Build sparse dummy matrix for controls (excluding intercept)
 X_ctrl <- sparse.model.matrix(~ exp_level + work_type + remote + state, data = jobs)[, -1]
@@ -101,7 +122,6 @@ p_ctrl <- ncol(X_ctrl)
 p_text <- ncol(X_text)
 cat("Controls:", p_ctrl, "| Text features:", p_text, "| Total p:", ncol(X_full), "\n")
 ```
-
 
 First penalised regression models.
 
@@ -356,7 +376,7 @@ sparsity_tradeoff <- rbind(
 print(sparsity_tradeoff)
 ```
 
-
+# Looking at Target Skills
 
 ```{r}
 library(desla)
@@ -372,8 +392,11 @@ print(target_skills)
 top_terms <- names(sort(colSums(X_text > 0), decreasing = TRUE))[1:500]
 keep_text <- union(top_terms, target_skills)
 
-X_inf <- cbind(as.matrix(X_ctrl), as.matrix(X_text[, keep_text]))
-X_inf_bin  <- cbind(as.matrix(X_ctrl), as.matrix(X_text_bin[, keep_text]))
+if (binary == FALSE) {
+  X_inf <- cbind(as.matrix(X_ctrl), as.matrix(X_text[, keep_text]))
+} else {
+  X_inf_bin  <- cbind(as.matrix(X_ctrl), as.matrix(X_text_bin[, keep_text]))
+}
 
 H_idx <- which(colnames(X_inf) %in% target_skills)
 
@@ -386,9 +409,7 @@ summary(ds_fit)
 confint(ds_fit)
 ```
 
-If X_inf is TF-IDF: A coefficient of 0.0418 for python means a 1-unit increase in the TF-IDF score of "python" is associated with an approximate $+4.2\%$ higher wage.
-If X_inf is binary 0/1: You can interpret 0.0418 directly as an approximate $+4.27\%$ ($e^{0.0418} - 1$) wage premium for mentioning Python in the ad.
-Here it is TF-IDF.
+If X_inf is TF-IDF: A coefficient of 0.0418 for python means a 1-unit increase in the TF-IDF score of "python" is associated with an approximate $+4.2\%$ higher wage. If X_inf is binary 0/1: You can interpret 0.0418 directly as an approximate $+4.27\%$ ($e^{0.0418} - 1$) wage premium for mentioning Python in the ad. Here it is TF-IDF.
 
 ```{r}
 library(ggplot2)
@@ -499,4 +520,81 @@ ci_joint <- confint(ds_fit, level = 0.95, joint = TRUE)
 print(round(ci_joint, 4))
 ```
 
+# Tree-Guided Aggregation
+
+```{r}
+# Install from CRAN (or r-universe if CRAN mirror is slow):
+# install.packages("rare")
+library(rare)
+library(Matrix)
+
+# 1. Select top 300 text features (plus target skills) strictly from training data
+top_300   <- names(sort(colSums(X_text_tr > 0), decreasing = TRUE))[1:50]
+rare_cols <- union(top_300, target_skills)
+
+X_rare_tr <- X_text_tr[, rare_cols]
+X_rare_te <- X_text_te[, rare_cols]
+
+# Target = wage residuals after unpenalized baseline controls (exp_level, work_type, remote, state)
+y_res_tr <- as.numeric(resid(fit_ols))
+
+# 2. Build hierarchical clustering tree (dendrogram) on TRAINING features only
+# Correlation distance places co-occurring / related skills in the same branches
+cor_mat  <- cor(as.matrix(X_rare_tr))
+dist_mat <- as.dist(1 - cor_mat)
+hc_tree  <- hclust(dist_mat, method = "average")
+
+# 3. Fit the 2D regularization path (lambda = shrinkage, alpha = fusion vs. sparsity)
+# Note: Use a smaller grid first to verify speed on your machine
+set.seed(42)
+rare_fit <- rarefit(
+  y             = y_res_tr,
+  X             = X_rare_tr,
+  hc            = hc_tree,
+  nlam          = 20,
+  nalpha        = 5,
+  lam.min.ratio = 1e-4,
+  eps1          = 1e-5,
+  eps2          = 1e-4,
+  maxite        = 1e4
+)
+
+# 4. Select optimal (lambda, alpha) via 5-fold cross-validation
+set.seed(42)
+rare_cv <- rarefit.cv(
+  fitObj = rare_fit,
+  y      = y_res_tr,
+  X      = X_rare_tr,
+  nfolds = 5
+)
+
+cat("Optimal alpha:", rare_fit$alpha[rare_cv$ibest[2]],
+    "| Optimal lambda:", round(rare_fit$lambda[rare_cv$ibest[1]], 5), "\n")
+
+# 5. Predict on the test set and add back baseline OLS predictions
+pred_rare_res <- as.numeric(rarefit.predict(fitObj = rare_fit, cvObj = rare_cv, newx = X_rare_te))
+pred_rare     <- as.numeric(pred_ols) + pred_rare_res
+
+# Evaluate for your horse race table
+print(round(eval_model(pred_rare, y_te), 4))
+```
+
+Extract word groups.
+
+```{r}
+# Recover the aggregated feature groups at the CV-optimal (lambda, alpha)
+best_lam_idx   <- rare_cv$ibest[1]
+best_alpha_idx <- rare_cv$ibest[2]
+
+gamma_opt <- rare_fit$gamma[[best_alpha_idx]][, best_lam_idx]
+groups    <- group.recover(gamma_opt, rare_fit$A)
+
+# Print multi-word clusters (groups with 2 or more fused terms)
+multi_groups <- Filter(function(g) length(g) >= 2, groups)
+cat("Number of fused multi-word clusters:", length(multi_groups), "\n")
+
+for (i in seq_len(min(10, length(multi_groups)))) {
+  cat("Cluster", i, ":", paste(colnames(X_rare_tr)[multi_groups[[i]]], collapse = ", "), "\n")
+}
+```
 
