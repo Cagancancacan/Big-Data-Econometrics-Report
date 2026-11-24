@@ -523,78 +523,157 @@ print(round(ci_joint, 4))
 # Tree-Guided Aggregation
 
 ```{r}
-# Install from CRAN (or r-universe if CRAN mirror is slow):
-# install.packages("rare")
-library(rare)
-library(Matrix)
-
-# 1. Select top 300 text features (plus target skills) strictly from training data
-top_300   <- names(sort(colSums(X_text_tr > 0), decreasing = TRUE))[1:50]
-rare_cols <- union(top_300, target_skills)
-
-X_rare_tr <- X_text_tr[, rare_cols]
-X_rare_te <- X_text_te[, rare_cols]
-
-# Target = wage residuals after unpenalized baseline controls (exp_level, work_type, remote, state)
-y_res_tr <- as.numeric(resid(fit_ols))
-
-# 2. Build hierarchical clustering tree (dendrogram) on TRAINING features only
-# Correlation distance places co-occurring / related skills in the same branches
-cor_mat  <- cor(as.matrix(X_rare_tr))
-dist_mat <- as.dist(1 - cor_mat)
-hc_tree  <- hclust(dist_mat, method = "average")
-
-# 3. Fit the 2D regularization path (lambda = shrinkage, alpha = fusion vs. sparsity)
-# Note: Use a smaller grid first to verify speed on your machine
-set.seed(42)
-rare_fit <- rarefit(
-  y             = y_res_tr,
-  X             = X_rare_tr,
-  hc            = hc_tree,
-  nlam          = 20,
-  nalpha        = 5,
-  lam.min.ratio = 1e-4,
-  eps1          = 1e-5,
-  eps2          = 1e-4,
-  maxite        = 1e4
-)
-
-# 4. Select optimal (lambda, alpha) via 5-fold cross-validation
-set.seed(42)
-rare_cv <- rarefit.cv(
-  fitObj = rare_fit,
-  y      = y_res_tr,
-  X      = X_rare_tr,
-  nfolds = 5
-)
-
-cat("Optimal alpha:", rare_fit$alpha[rare_cv$ibest[2]],
-    "| Optimal lambda:", round(rare_fit$lambda[rare_cv$ibest[1]], 5), "\n")
-
-# 5. Predict on the test set and add back baseline OLS predictions
-pred_rare_res <- as.numeric(rarefit.predict(fitObj = rare_fit, cvObj = rare_cv, newx = X_rare_te))
-pred_rare     <- as.numeric(pred_ols) + pred_rare_res
-
-# Evaluate for your horse race table
-print(round(eval_model(pred_rare, y_te), 4))
+## Install from CRAN (or r-universe if CRAN mirror is slow):
+## install.packages("rare")
+#library(rare)
+#library(Matrix)
+#
+## 1. Select top 300 text features (plus target skills) strictly from training data
+#top_300   <- names(sort(colSums(X_text_tr > 0), decreasing = TRUE))[1:50]
+#rare_cols <- union(top_300, target_skills)
+#
+#X_rare_tr <- X_text_tr[, rare_cols]
+#X_rare_te <- X_text_te[, rare_cols]
+#
+## Target = wage residuals after unpenalized baseline controls (exp_level, work_type, remote, state)
+#y_res_tr <- as.numeric(resid(fit_ols))
+#
+## 2. Build hierarchical clustering tree (dendrogram) on TRAINING features only
+## Correlation distance places co-occurring / related skills in the same branches
+#cor_mat  <- cor(as.matrix(X_rare_tr))
+#dist_mat <- as.dist(1 - cor_mat)
+#hc_tree  <- hclust(dist_mat, method = "average")
+#
+## 3. Fit the 2D regularization path (lambda = shrinkage, alpha = fusion vs. sparsity)
+## Note: Use a smaller grid first to verify speed on your machine
+#set.seed(42)
+#rare_fit <- rarefit(
+#  y             = y_res_tr,
+#  X             = X_rare_tr,
+#  hc            = hc_tree,
+#  nlam          = 20,
+#  nalpha        = 5,
+#  lam.min.ratio = 1e-4,
+#  eps1          = 1e-5,
+#  eps2          = 1e-4,
+#  maxite        = 1e4
+#)
+#
+## 4. Select optimal (lambda, alpha) via 5-fold cross-validation
+#set.seed(42)
+#rare_cv <- rarefit.cv(
+#  fitObj = rare_fit,
+#  y      = y_res_tr,
+#  X      = X_rare_tr,
+#  nfolds = 5
+#)
+#
+#cat("Optimal alpha:", rare_fit$alpha[rare_cv$ibest[2]],
+#    "| Optimal lambda:", round(rare_fit$lambda[rare_cv$ibest[1]], 5), "\n")
+#
+## 5. Predict on the test set and add back baseline OLS predictions
+#pred_rare_res <- as.numeric(rarefit.predict(fitObj = rare_fit, cvObj = rare_cv, newx = X_rare_te))
+#pred_rare     <- as.numeric(pred_ols) + pred_rare_res
+#
+## Evaluate for your horse race table
+#print(round(eval_model(pred_rare, y_te), 4))
 ```
 
 Extract word groups.
 
 ```{r}
-# Recover the aggregated feature groups at the CV-optimal (lambda, alpha)
-best_lam_idx   <- rare_cv$ibest[1]
-best_alpha_idx <- rare_cv$ibest[2]
+## Recover the aggregated feature groups at the CV-optimal (lambda, alpha)
+#best_lam_idx   <- rare_cv$ibest[1]
+#best_alpha_idx <- rare_cv$ibest[2]
+#
+#gamma_opt <- rare_fit$gamma[[best_alpha_idx]][, best_lam_idx]
+#groups    <- group.recover(gamma_opt, rare_fit$A)
+#
+## Print multi-word clusters (groups with 2 or more fused terms)
+#multi_groups <- Filter(function(g) length(g) >= 2, groups)
+#cat("Number of fused multi-word clusters:", length(multi_groups), "\n")
+#
+#for (i in seq_len(min(10, length(multi_groups)))) {
+#  cat("Cluster", i, ":", paste(colnames(X_rare_tr)[multi_groups[[i]]], collapse = ", "), "\n")
+#}
+```
 
-gamma_opt <- rare_fit$gamma[[best_alpha_idx]][, best_lam_idx]
-groups    <- group.recover(gamma_opt, rare_fit$A)
+Try Tree-Guided Aggregation with glmnet instead of rare
 
-# Print multi-word clusters (groups with 2 or more fused terms)
-multi_groups <- Filter(function(g) length(g) >= 2, groups)
-cat("Number of fused multi-word clusters:", length(multi_groups), "\n")
+```{r}
+library(glmnet)
+library(Matrix)
 
-for (i in seq_len(min(10, length(multi_groups)))) {
-  cat("Cluster", i, ":", paste(colnames(X_rare_tr)[multi_groups[[i]]], collapse = ", "), "\n")
+# Helper: build the p x (2p - 1) sparse tree descendant matrix A from hclust()
+build_tree_matrix <- function(hc) {
+  p <- length(hc$order)
+  m <- nrow(hc$merge) # p - 1 internal nodes
+  desc <- vector("list", p + m)
+  for (j in seq_len(p)) desc[[j]] <- j
+  for (k in seq_len(m)) {
+    left  <- hc$merge[k, 1]
+    right <- hc$merge[k, 2]
+    idx_l <- if (left  < 0) -left  else p + left
+    idx_r <- if (right < 0) -right else p + right
+    desc[[p + k]] <- c(desc[[idx_l]], desc[[idx_r]])
+  }
+  i_idx <- unlist(desc)
+  j_idx <- rep(seq_along(desc), lengths(desc))
+  list(
+    A    = sparseMatrix(i = i_idx, j = j_idx, x = 1, dims = c(p, p + m)),
+    desc = desc
+  )
+}
+
+# 1. Select top 500 text terms (plus target skills) strictly from training data
+top_500   <- names(sort(colSums(X_text_tr > 0), decreasing = TRUE))[1:500]
+tree_cols <- union(top_500, target_skills)
+
+X_tree_tr <- X_text_tr[, tree_cols]
+X_tree_te <- X_text_te[, tree_cols]
+
+# 2. Build hierarchical clustering tree on TRAINING features only
+cor_mat  <- cor(as.matrix(X_tree_tr))
+hc_tree  <- hclust(as.dist(1 - cor_mat), method = "average")
+tree_obj <- build_tree_matrix(hc_tree)
+A_mat    <- tree_obj$A
+
+# 3. Form aggregated tree features Z = X * A (leaves + all internal branches)
+Z_tr <- X_tree_tr %*% A_mat
+Z_te <- X_tree_te %*% A_mat
+
+# Combine unpenalized controls W with penalized tree features Z
+X_tag_tr <- cbind(X_ctrl[train_idx, ],  Z_tr)
+X_tag_te <- cbind(X_ctrl[-train_idx, ], Z_te)
+pf_tag   <- c(rep(0, p_ctrl), rep(1, ncol(Z_tr)))
+
+# 4. Fit Tree-Guided Aggregation via 10-fold CV in glmnet
+set.seed(42)
+cv_tree_agg   <- cv.glmnet(X_tag_tr, y_tr, alpha = 1, penalty.factor = pf_tag)
+pred_tree_agg <- as.numeric(predict(cv_tree_agg, s = "lambda.min", newx = X_tag_te))
+
+# Evaluate for your horse race table
+print(round(eval_model(pred_tree_agg, y_te), 4))
+```
+
+Inspect.
+
+```{r}
+p_sub     <- length(tree_cols)
+gamma_hat <- as.numeric(coef(cv_tree_agg, s = "lambda.1se"))[-1][(p_ctrl + 1):ncol(X_tag_tr)]
+
+# Internal nodes (branches with >= 2 fused words) that are non-zero
+active_branches <- which(gamma_hat != 0 & seq_along(gamma_hat) > p_sub)
+cat("Active fused branches (at lambda.1se):", length(active_branches), "\n\n")
+
+# Sort by largest absolute effect and print top 10 clusters
+top_branches <- active_branches[order(abs(gamma_hat[active_branches]), decreasing = TRUE)]
+for (b in head(top_branches, 10)) {
+  words <- tree_cols[tree_obj$desc[[b]]]
+  if (length(words) <= 15) { # skip huge near-root branches for readability
+    cat(sprintf("Gamma = %+.4f | Words (%d): %s\n",
+                gamma_hat[b], length(words), paste(words, collapse = ", ")))
+  }
 }
 ```
 
