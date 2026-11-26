@@ -440,7 +440,7 @@ H_idx <- which(colnames(X_inf) %in% target_skills)
 
 ```{r}
 # Runs valid high-dimensional inference on the columns in H_idx
-ds_fit <- rlassoEffects(x = X_inf, y = y, index = H_idx)
+ds_fit <- rlassoEffects(x = X_inf, y = y, index = H_idx, method = "double selection")
 summary(ds_fit)
 confint(ds_fit)
 ```
