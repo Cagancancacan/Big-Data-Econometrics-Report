@@ -1,0 +1,1512 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={JobAnalysis},
+  pdfauthor={Can},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{JobAnalysis}
+\author{Can}
+\date{2026-11-20}
+
+\begin{document}
+\maketitle
+
+\subsection{Data Analysis for BDE
+Report}\label{data-analysis-for-bde-report}
+
+In this markdown I explore the dataset of LinkedIn job postings from
+Kaggle.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(RKaggle)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'RKaggle' was built under R version 4.6.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyr)}
+\FunctionTok{library}\NormalTok{(stringr)}
+
+\NormalTok{kaggleData }\OtherTok{\textless{}{-}} \FunctionTok{get\_dataset}\NormalTok{(}\StringTok{"arshkon/linkedin{-}job{-}postings"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Rows: 123849 Columns: 31
+\end{verbatim}
+
+\begin{verbatim}
+## -- Column specification --------------------------------------------------------
+## Delimiter: ","
+## chr (17): company_name, title, description, pay_period, location, formatted_...
+## dbl (14): job_id, max_salary, company_id, views, med_salary, min_salary, app...
+## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\section{Data Exploration}\label{data-exploration}
+
+Explore the data to see how it distributed/looks.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Put this at the top of your Data Exploration chunk (set to Inf for the full dataset)}
+\CommentTok{\# 2. Clean target variable (log annual USD base salary) and baseline controls}
+
+\NormalTok{N\_sample }\OtherTok{\textless{}{-}} \DecValTok{40000}
+
+\NormalTok{jobs }\OtherTok{\textless{}{-}}\NormalTok{ kaggleData }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(}
+\NormalTok{    currency }\SpecialCharTok{==} \StringTok{"USD"}\NormalTok{,}
+\NormalTok{    compensation\_type }\SpecialCharTok{==} \StringTok{"BASE\_SALARY"}\NormalTok{,}
+\NormalTok{    pay\_period }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"YEARLY"}\NormalTok{, }\StringTok{"HOURLY"}\NormalTok{, }\StringTok{"MONTHLY"}\NormalTok{),}
+    \SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(normalized\_salary),}
+    \SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(description),}
+    \FunctionTok{nchar}\NormalTok{(description) }\SpecialCharTok{\textgreater{}} \DecValTok{100}\NormalTok{,                      }\CommentTok{\# drop empty/stub ads}
+\NormalTok{    normalized\_salary }\SpecialCharTok{\textgreater{}=} \DecValTok{20000}\NormalTok{,                    }\CommentTok{\# drops un{-}annualized hourly errors}
+\NormalTok{    normalized\_salary }\SpecialCharTok{\textless{}=} \DecValTok{500000}                    \CommentTok{\# drops mis{-}multiplied scraping errors}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{log\_wage =} \FunctionTok{log}\NormalTok{(normalized\_salary),}
+    \AttributeTok{full\_text =} \FunctionTok{paste}\NormalTok{(title, description),}
+    \CommentTok{\# Clean control variables (replace NAs with explicit categories)}
+    \AttributeTok{exp\_level =} \FunctionTok{replace\_na}\NormalTok{(formatted\_experience\_level, }\StringTok{"Not\_Specified"}\NormalTok{),}
+    \AttributeTok{work\_type =} \FunctionTok{replace\_na}\NormalTok{(formatted\_work\_type, }\StringTok{"Not\_Specified"}\NormalTok{),}
+    \AttributeTok{remote    =} \FunctionTok{if\_else}\NormalTok{(}\FunctionTok{is.na}\NormalTok{(remote\_allowed), }\DecValTok{0}\DataTypeTok{L}\NormalTok{, }\DecValTok{1}\DataTypeTok{L}\NormalTok{),}
+    \CommentTok{\# Extract 2{-}letter US state from strings like "Austin, TX"}
+    \AttributeTok{state     =} \FunctionTok{replace\_na}\NormalTok{(}\FunctionTok{str\_extract}\NormalTok{(location, }\StringTok{",}\SpecialCharTok{\textbackslash{}\textbackslash{}}\StringTok{s*([A{-}Z]\{2\})$"}\NormalTok{, }\AttributeTok{group =} \DecValTok{1}\NormalTok{), }\StringTok{"Other"}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \CommentTok{\# Remove duplicate postings (same title + description) to avoid train/test leakage}
+  \FunctionTok{distinct}\NormalTok{(title, description, }\AttributeTok{.keep\_all =} \ConstantTok{TRUE}\NormalTok{)}
+
+\CommentTok{\# Downsample to N\_sample rows reproducibly}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{42}\NormalTok{)}
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{nrow}\NormalTok{(jobs) }\SpecialCharTok{\textgreater{}}\NormalTok{ N\_sample) \{}
+\NormalTok{  jobs }\OtherTok{\textless{}{-}} \FunctionTok{slice\_sample}\NormalTok{(jobs, }\AttributeTok{n =}\NormalTok{ N\_sample)}
+\NormalTok{\}}
+
+\CommentTok{\# Free the raw Kaggle table from RAM immediately}
+\FunctionTok{rm}\NormalTok{(kaggleData)}
+\FunctionTok{gc}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##            used  (Mb) gc trigger  (Mb) max used  (Mb)
+## Ncells  1416502  75.7    2975581 159.0  2244004 119.9
+## Vcells 38378452 292.9   85505669 652.4 81454990 621.5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Working sample size N:"}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(jobs), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Working sample size N: 33789
+\end{verbatim}
+
+I remove the EEO Legal Boilerplate as well.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(quanteda)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'quanteda' was built under R version 4.6.2
+\end{verbatim}
+
+\begin{verbatim}
+## Package version: 4.5.1
+## Unicode version: 15.1
+## ICU version: 74.1
+\end{verbatim}
+
+\begin{verbatim}
+## Parallel computing: 8 of 8 threads used.
+\end{verbatim}
+
+\begin{verbatim}
+## See https://quanteda.io for tutorials and examples.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(Matrix)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'Matrix'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:quanteda':
+## 
+##     drop0
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:tidyr':
+## 
+##     expand, pack, unpack
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{binary }\OtherTok{\textless{}{-}} \ConstantTok{FALSE}
+
+\CommentTok{\# 1. Unigram leakage \& boilerplate (use * wildcards to catch all word forms before stemming)}
+\NormalTok{leakage\_words }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"salary"}\NormalTok{, }\StringTok{"salaries"}\NormalTok{, }\StringTok{"pay"}\NormalTok{, }\StringTok{"paid"}\NormalTok{, }\StringTok{"compensation"}\NormalTok{, }\StringTok{"base"}\NormalTok{, }\StringTok{"bonus"}\NormalTok{, }\StringTok{"bonuses"}\NormalTok{,}
+  \StringTok{"usd"}\NormalTok{, }\StringTok{"dollar"}\NormalTok{, }\StringTok{"dollars"}\NormalTok{, }\StringTok{"hour"}\NormalTok{, }\StringTok{"hourly"}\NormalTok{, }\StringTok{"hr"}\NormalTok{, }\StringTok{"year"}\NormalTok{, }\StringTok{"years"}\NormalTok{, }\StringTok{"yearly"}\NormalTok{, }\StringTok{"yr"}\NormalTok{,}
+  \StringTok{"annum"}\NormalTok{, }\StringTok{"annual"}\NormalTok{, }\StringTok{"annually"}\NormalTok{, }\StringTok{"month"}\NormalTok{, }\StringTok{"monthly"}\NormalTok{, }\StringTok{"week"}\NormalTok{, }\StringTok{"weekly"}\NormalTok{, }\StringTok{"k"}\NormalTok{,}
+  \StringTok{"range"}\NormalTok{, }\StringTok{"rate"}\NormalTok{, }\StringTok{"rates"}\NormalTok{, }\StringTok{"ote"}\NormalTok{, }\StringTok{"commission"}\NormalTok{, }\StringTok{"commissions"}\NormalTok{, }\StringTok{"equity"}\NormalTok{,}
+  \StringTok{"stipend"}\NormalTok{, }\StringTok{"401k"}\NormalTok{, }\StringTok{"401"}\NormalTok{, }\StringTok{"benefits"}\NormalTok{, }\StringTok{"competitive"}\NormalTok{, }\StringTok{"doe"}\NormalTok{,}
+  \StringTok{"eeo"}\NormalTok{, }\StringTok{"discrimin*"}\NormalTok{, }\StringTok{"race"}\NormalTok{, }\StringTok{"religion"}\NormalTok{, }\StringTok{"citizenship"}\NormalTok{, }\StringTok{"opportun*"}\NormalTok{, }\StringTok{"unlaw*"}
+\NormalTok{)}
+
+\CommentTok{\# 2. Tokenize and build unigrams + bigrams}
+\NormalTok{toks }\OtherTok{\textless{}{-}} \FunctionTok{corpus}\NormalTok{(jobs, }\AttributeTok{text\_field =} \StringTok{"full\_text"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tokens}\NormalTok{(}\AttributeTok{remove\_punct =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{remove\_numbers =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{remove\_symbols =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{remove\_url =} \ConstantTok{TRUE}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tokens\_tolower}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tokens\_remove}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\FunctionTok{stopwords}\NormalTok{(}\StringTok{"en"}\NormalTok{), leakage\_words)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tokens\_wordstem}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tokens\_ngrams}\NormalTok{(}\AttributeTok{n =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# 3. Build DTM, remove bigram scraping artifacts, and trim sparsity}
+\NormalTok{dfm\_mat }\OtherTok{\textless{}{-}} \FunctionTok{dfm}\NormalTok{(toks) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{dfm\_remove}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"job\_id"}\NormalTok{, }\StringTok{"job\_detail"}\NormalTok{, }\StringTok{"job\_shift"}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{dfm\_trim}\NormalTok{(}\AttributeTok{min\_docfreq =} \FloatTok{0.01}\NormalTok{, }\AttributeTok{max\_docfreq =} \FloatTok{0.80}\NormalTok{, }\AttributeTok{docfreq\_type =} \StringTok{"prop"}\NormalTok{)}
+
+\CommentTok{\# TF{-}IDF weighting (alternative: dfm\_weight(dfm\_mat, scheme = "boolean") for 0/1 presence)}
+\ControlFlowTok{if}\NormalTok{ (binary }\SpecialCharTok{==} \ConstantTok{FALSE}\NormalTok{) \{}
+\NormalTok{  X\_text }\OtherTok{\textless{}{-}} \FunctionTok{dfm\_tfidf}\NormalTok{(dfm\_mat) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{as}\NormalTok{(}\StringTok{"dgCMatrix"}\NormalTok{)}
+\NormalTok{\} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{  X\_text\_bin }\OtherTok{\textless{}{-}} \FunctionTok{dfm\_weight}\NormalTok{(dfm\_mat, }\AttributeTok{scheme =} \StringTok{"boolean"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{as}\NormalTok{(}\StringTok{"dgCMatrix"}\NormalTok{)}
+\NormalTok{\}}
+
+
+\CommentTok{\# 4. Build sparse dummy matrix for controls (excluding intercept)}
+\NormalTok{X\_ctrl }\OtherTok{\textless{}{-}} \FunctionTok{sparse.model.matrix}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ exp\_level }\SpecialCharTok{+}\NormalTok{ work\_type }\SpecialCharTok{+}\NormalTok{ remote }\SpecialCharTok{+}\NormalTok{ state, }\AttributeTok{data =}\NormalTok{ jobs)[, }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+
+\CommentTok{\# Combine controls + text into one matrix}
+\NormalTok{X\_full }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(X\_ctrl, X\_text)}
+\NormalTok{y      }\OtherTok{\textless{}{-}}\NormalTok{ jobs}\SpecialCharTok{$}\NormalTok{log\_wage}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Untrimmed DTM features:"}\NormalTok{, }\FunctionTok{ncol}\NormalTok{(}\FunctionTok{dfm}\NormalTok{(toks)), }\StringTok{"| Trimmed p:"}\NormalTok{, }\FunctionTok{ncol}\NormalTok{(X\_full), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Untrimmed DTM features: 2494696 | Trimmed p: 4540
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{p\_ctrl }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(X\_ctrl)}
+\NormalTok{p\_text }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(X\_text)}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Controls:"}\NormalTok{, p\_ctrl, }\StringTok{"| Text features:"}\NormalTok{, p\_text, }\StringTok{"| Total p:"}\NormalTok{, }\FunctionTok{ncol}\NormalTok{(X\_full), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Controls: 64 | Text features: 4476 | Total p: 4540
+\end{verbatim}
+
+First penalised regression models.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(glmnet)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'glmnet' was built under R version 4.6.2
+\end{verbatim}
+
+\begin{verbatim}
+## Loaded glmnet 5.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(irlba)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'irlba' was built under R version 4.6.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(Matrix)}
+
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{42}\NormalTok{)}
+\NormalTok{train\_idx }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{seq\_len}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(X\_full)), }\AttributeTok{size =} \FunctionTok{floor}\NormalTok{(}\FloatTok{0.8} \SpecialCharTok{*} \FunctionTok{nrow}\NormalTok{(X\_full)))}
+
+\NormalTok{X\_tr }\OtherTok{\textless{}{-}}\NormalTok{ X\_full[train\_idx, ];  X\_te }\OtherTok{\textless{}{-}}\NormalTok{ X\_full[}\SpecialCharTok{{-}}\NormalTok{train\_idx, ]}
+\NormalTok{y\_tr }\OtherTok{\textless{}{-}}\NormalTok{ y[train\_idx];         y\_te }\OtherTok{\textless{}{-}}\NormalTok{ y[}\SpecialCharTok{{-}}\NormalTok{train\_idx]}
+
+\CommentTok{\# Keep controls unpenalized (0), penalize text features (1)}
+\NormalTok{pf\_base }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, p\_ctrl), }\FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, p\_text))}
+
+\CommentTok{\# {-}{-}{-} 0. Baseline OLS (Controls only) {-}{-}{-}}
+\NormalTok{ols\_df\_tr }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(X\_ctrl[train\_idx, ]))}
+\NormalTok{ols\_df\_te }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(X\_ctrl[}\SpecialCharTok{{-}}\NormalTok{train\_idx, ]))}
+\NormalTok{fit\_ols   }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y\_tr }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ ols\_df\_tr)}
+\NormalTok{pred\_ols  }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_ols, }\AttributeTok{newdata =}\NormalTok{ ols\_df\_te)}
+
+\CommentTok{\# {-}{-}{-} 0b. Full OLS (Unpenalized Controls + All Text Features) {-}{-}{-}}
+\NormalTok{fit\_full\_ols  }\OtherTok{\textless{}{-}} \FunctionTok{glmnet}\NormalTok{(X\_tr, y\_tr, }\AttributeTok{alpha =} \DecValTok{0}\NormalTok{, }\AttributeTok{lambda =} \DecValTok{0}\NormalTok{)}
+\NormalTok{pred\_full\_ols }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(fit\_full\_ols, }\AttributeTok{newx =}\NormalTok{ X\_te))}
+
+\CommentTok{\# {-}{-}{-} 1. Penalized Regressions (glmnet standardizes internally) {-}{-}{-}}
+\NormalTok{cv\_ridge   }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_tr, y\_tr, }\AttributeTok{alpha =} \DecValTok{0}\NormalTok{,   }\AttributeTok{penalty.factor =}\NormalTok{ pf\_base)}
+\NormalTok{cv\_lasso   }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_tr, y\_tr, }\AttributeTok{alpha =} \DecValTok{1}\NormalTok{,   }\AttributeTok{penalty.factor =}\NormalTok{ pf\_base)}
+\NormalTok{cv\_elastic }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_tr, y\_tr, }\AttributeTok{alpha =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{penalty.factor =}\NormalTok{ pf\_base)}
+
+\CommentTok{\# Adaptive Lasso (Ridge initial weights on text columns)}
+\NormalTok{ridge\_coefs  }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{coef}\NormalTok{(cv\_ridge, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{))[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+\NormalTok{adapt\_w\_text }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{/}\NormalTok{ (}\FunctionTok{abs}\NormalTok{(ridge\_coefs[(p\_ctrl }\SpecialCharTok{+} \DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\FunctionTok{ncol}\NormalTok{(X\_full)]) }\SpecialCharTok{+} \FloatTok{1e{-}7}\NormalTok{)}
+\NormalTok{pf\_adapt     }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, p\_ctrl), adapt\_w\_text)}
+\NormalTok{cv\_adapt     }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_tr, y\_tr, }\AttributeTok{alpha =} \DecValTok{1}\NormalTok{, }\AttributeTok{penalty.factor =}\NormalTok{ pf\_adapt)}
+
+\NormalTok{pred\_ridge   }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_ridge,   }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{, }\AttributeTok{newx =}\NormalTok{ X\_te))}
+\NormalTok{pred\_lasso   }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_lasso,   }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{, }\AttributeTok{newx =}\NormalTok{ X\_te))}
+\NormalTok{pred\_elastic }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_elastic, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{, }\AttributeTok{newx =}\NormalTok{ X\_te))}
+\NormalTok{pred\_adapt   }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_adapt,   }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{, }\AttributeTok{newx =}\NormalTok{ X\_te))}
+\end{Highlighting}
+\end{Shaded}
+
+Now factor models.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# {-}{-}{-} 2. Factor{-}Augmented Regression (Unsupervised PCA via irlba) {-}{-}{-}}
+\NormalTok{X\_text\_tr }\OtherTok{\textless{}{-}}\NormalTok{ X\_text[train\_idx, ]}
+\NormalTok{X\_text\_te }\OtherTok{\textless{}{-}}\NormalTok{ X\_text[}\SpecialCharTok{{-}}\NormalTok{train\_idx, ]}
+
+\NormalTok{r\_max   }\OtherTok{\textless{}{-}} \DecValTok{50}
+\NormalTok{pca\_fit }\OtherTok{\textless{}{-}} \FunctionTok{prcomp\_irlba}\NormalTok{(X\_text\_tr, }\AttributeTok{n =}\NormalTok{ r\_max, }\AttributeTok{center =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{scale. =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{F\_tr    }\OtherTok{\textless{}{-}}\NormalTok{ pca\_fit}\SpecialCharTok{$}\NormalTok{x}
+\NormalTok{F\_te    }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(pca\_fit, }\AttributeTok{newdata =}\NormalTok{ X\_text\_te)}
+
+\NormalTok{r\_opt   }\OtherTok{\textless{}{-}} \DecValTok{30}
+\NormalTok{fa\_tr   }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(ols\_df\_tr, }\FunctionTok{as.data.frame}\NormalTok{(F\_tr[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{r\_opt]))}
+\NormalTok{fa\_te   }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(ols\_df\_te, }\FunctionTok{as.data.frame}\NormalTok{(F\_te[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{r\_opt]))}
+\NormalTok{fit\_fa  }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y\_tr }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ fa\_tr)}
+\NormalTok{pred\_fa }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_fa, }\AttributeTok{newdata =}\NormalTok{ fa\_te)}
+
+\CommentTok{\# {-}{-}{-} 3. NEW: Partial Least Squares (Supervised Sparse PLS1) {-}{-}{-}}
+\NormalTok{fit\_sparse\_pls }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(X\_train, y\_train, X\_test, }\AttributeTok{ncomp =} \DecValTok{30}\NormalTok{) \{}
+  \CommentTok{\# Standardize using training mean \& sd without densifying X}
+\NormalTok{  mu }\OtherTok{\textless{}{-}}\NormalTok{ Matrix}\SpecialCharTok{::}\FunctionTok{colMeans}\NormalTok{(X\_train)}
+\NormalTok{  sd }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{, Matrix}\SpecialCharTok{::}\FunctionTok{colMeans}\NormalTok{(X\_train}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{{-}}\NormalTok{ mu}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  sd[sd }\SpecialCharTok{==} \DecValTok{0}\NormalTok{] }\OtherTok{\textless{}{-}} \DecValTok{1}
+  
+\NormalTok{  Ax    }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(v) \{ vs }\OtherTok{\textless{}{-}}\NormalTok{ v }\SpecialCharTok{/}\NormalTok{ sd; }\FunctionTok{as.numeric}\NormalTok{(X\_train }\SpecialCharTok{\%*\%}\NormalTok{ vs) }\SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{(mu }\SpecialCharTok{*}\NormalTok{ vs) \}}
+\NormalTok{  Atx   }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(u) \{ (}\FunctionTok{as.numeric}\NormalTok{(Matrix}\SpecialCharTok{::}\FunctionTok{crossprod}\NormalTok{(X\_train, u)) }\SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{(u) }\SpecialCharTok{*}\NormalTok{ mu) }\SpecialCharTok{/}\NormalTok{ sd \}}
+\NormalTok{  Ax\_te }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(v) \{ vs }\OtherTok{\textless{}{-}}\NormalTok{ v }\SpecialCharTok{/}\NormalTok{ sd; }\FunctionTok{as.numeric}\NormalTok{(X\_test  }\SpecialCharTok{\%*\%}\NormalTok{ vs) }\SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{(mu }\SpecialCharTok{*}\NormalTok{ vs) \}}
+  
+\NormalTok{  s }\OtherTok{\textless{}{-}} \FunctionTok{Atx}\NormalTok{(y\_train }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(y\_train))}
+\NormalTok{  T\_tr }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }\AttributeTok{nrow =} \FunctionTok{nrow}\NormalTok{(X\_train), }\AttributeTok{ncol =}\NormalTok{ ncomp)}
+\NormalTok{  R\_mat }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }\AttributeTok{nrow =} \FunctionTok{ncol}\NormalTok{(X\_train), }\AttributeTok{ncol =}\NormalTok{ ncomp)}
+\NormalTok{  V\_mat }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }\AttributeTok{nrow =} \FunctionTok{ncol}\NormalTok{(X\_train), }\AttributeTok{ncol =}\NormalTok{ ncomp)}
+  
+  \ControlFlowTok{for}\NormalTok{ (m }\ControlFlowTok{in} \FunctionTok{seq\_len}\NormalTok{(ncomp)) \{}
+\NormalTok{    r }\OtherTok{\textless{}{-}}\NormalTok{ s}
+\NormalTok{    t\_vec }\OtherTok{\textless{}{-}} \FunctionTok{Ax}\NormalTok{(r)}
+    \ControlFlowTok{if}\NormalTok{ (m }\SpecialCharTok{\textgreater{}} \DecValTok{1}\NormalTok{) \{}
+\NormalTok{      a\_t   }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{crossprod}\NormalTok{(T\_tr[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{(m }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{], t\_vec))}
+\NormalTok{      t\_vec }\OtherTok{\textless{}{-}}\NormalTok{ t\_vec }\SpecialCharTok{{-}} \FunctionTok{as.numeric}\NormalTok{(T\_tr[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{(m }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{] }\SpecialCharTok{\%*\%}\NormalTok{ a\_t)}
+\NormalTok{      r     }\OtherTok{\textless{}{-}}\NormalTok{ r     }\SpecialCharTok{{-}} \FunctionTok{as.numeric}\NormalTok{(R\_mat[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{(m }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{] }\SpecialCharTok{\%*\%}\NormalTok{ a\_t)}
+\NormalTok{    \}}
+\NormalTok{    t\_norm }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{sum}\NormalTok{(t\_vec}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{    t\_vec  }\OtherTok{\textless{}{-}}\NormalTok{ t\_vec }\SpecialCharTok{/}\NormalTok{ t\_norm}
+\NormalTok{    r      }\OtherTok{\textless{}{-}}\NormalTok{ r }\SpecialCharTok{/}\NormalTok{ t\_norm}
+\NormalTok{    T\_tr[, m]  }\OtherTok{\textless{}{-}}\NormalTok{ t\_vec}
+\NormalTok{    R\_mat[, m] }\OtherTok{\textless{}{-}}\NormalTok{ r}
+    
+\NormalTok{    v\_vec }\OtherTok{\textless{}{-}} \FunctionTok{Atx}\NormalTok{(t\_vec)}
+    \ControlFlowTok{if}\NormalTok{ (m }\SpecialCharTok{\textgreater{}} \DecValTok{1}\NormalTok{) \{}
+\NormalTok{      a\_v   }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{crossprod}\NormalTok{(V\_mat[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{(m }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{], v\_vec))}
+\NormalTok{      v\_vec }\OtherTok{\textless{}{-}}\NormalTok{ v\_vec }\SpecialCharTok{{-}} \FunctionTok{as.numeric}\NormalTok{(V\_mat[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{(m }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{), }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{] }\SpecialCharTok{\%*\%}\NormalTok{ a\_v)}
+\NormalTok{    \}}
+\NormalTok{    v\_vec }\OtherTok{\textless{}{-}}\NormalTok{ v\_vec }\SpecialCharTok{/} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{sum}\NormalTok{(v\_vec}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{    V\_mat[, m] }\OtherTok{\textless{}{-}}\NormalTok{ v\_vec}
+\NormalTok{    s }\OtherTok{\textless{}{-}}\NormalTok{ s }\SpecialCharTok{{-}}\NormalTok{ v\_vec }\SpecialCharTok{*} \FunctionTok{sum}\NormalTok{(v\_vec }\SpecialCharTok{*}\NormalTok{ s)}
+\NormalTok{  \}}
+  
+\NormalTok{  T\_te }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }\AttributeTok{nrow =} \FunctionTok{nrow}\NormalTok{(X\_test), }\AttributeTok{ncol =}\NormalTok{ ncomp)}
+  \ControlFlowTok{for}\NormalTok{ (m }\ControlFlowTok{in} \FunctionTok{seq\_len}\NormalTok{(ncomp)) T\_te[, m] }\OtherTok{\textless{}{-}} \FunctionTok{Ax\_te}\NormalTok{(R\_mat[, m])}
+  
+  \FunctionTok{colnames}\NormalTok{(T\_tr) }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(T\_te) }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"PLS\_"}\NormalTok{, }\FunctionTok{seq\_len}\NormalTok{(ncomp))}
+  \FunctionTok{list}\NormalTok{(}\AttributeTok{T\_tr =}\NormalTok{ T\_tr, }\AttributeTok{T\_te =}\NormalTok{ T\_te)}
+\NormalTok{\}}
+
+\CommentTok{\# {-}{-}{-} 3. Partial Least Squares with 5{-}Fold CV to Select Optimal M {-}{-}{-}}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{42}\NormalTok{)}
+\NormalTok{K      }\OtherTok{\textless{}{-}} \DecValTok{5}
+\NormalTok{m\_grid }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{5}\NormalTok{, }\DecValTok{8}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{15}\NormalTok{, }\DecValTok{20}\NormalTok{, }\DecValTok{25}\NormalTok{, }\DecValTok{30}\NormalTok{)}
+\NormalTok{folds  }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\FunctionTok{seq\_len}\NormalTok{(K), }\AttributeTok{length.out =} \FunctionTok{length}\NormalTok{(y\_tr)))}
+
+\NormalTok{cv\_mspe }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\DecValTok{0}\NormalTok{, }\AttributeTok{nrow =}\NormalTok{ K, }\AttributeTok{ncol =} \FunctionTok{length}\NormalTok{(m\_grid))}
+\FunctionTok{colnames}\NormalTok{(cv\_mspe) }\OtherTok{\textless{}{-}} \FunctionTok{paste0}\NormalTok{(}\StringTok{"M="}\NormalTok{, m\_grid)}
+
+\ControlFlowTok{for}\NormalTok{ (k }\ControlFlowTok{in} \FunctionTok{seq\_len}\NormalTok{(K)) \{}
+\NormalTok{  va\_k }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(folds }\SpecialCharTok{==}\NormalTok{ k)}
+\NormalTok{  tr\_k }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(folds }\SpecialCharTok{!=}\NormalTok{ k)}
+  
+  \CommentTok{\# 1. Fit controls{-}only OLS inside the 4 training folds to get clean residuals}
+\NormalTok{  ols\_k }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y\_tr[tr\_k] }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ ols\_df\_tr[tr\_k, , }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{])}
+  
+  \CommentTok{\# 2. Extract all max(m\_grid) = 30 PLS directions ONCE for this fold}
+\NormalTok{  pls\_k }\OtherTok{\textless{}{-}} \FunctionTok{fit\_sparse\_pls}\NormalTok{(}
+    \AttributeTok{X\_train =}\NormalTok{ X\_text\_tr[tr\_k, ],}
+    \AttributeTok{y\_train =} \FunctionTok{resid}\NormalTok{(ols\_k),}
+    \AttributeTok{X\_test  =}\NormalTok{ X\_text\_tr[va\_k, ],}
+    \AttributeTok{ncomp   =} \FunctionTok{max}\NormalTok{(m\_grid)}
+\NormalTok{  )}
+  
+  \CommentTok{\# 3. Evaluate each candidate M on the held{-}out fold}
+  \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \FunctionTok{seq\_along}\NormalTok{(m\_grid)) \{}
+\NormalTok{    m }\OtherTok{\textless{}{-}}\NormalTok{ m\_grid[j]}
+\NormalTok{    df\_tr\_m }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(ols\_df\_tr[tr\_k, , }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{], }\FunctionTok{as.data.frame}\NormalTok{(pls\_k}\SpecialCharTok{$}\NormalTok{T\_tr[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{m, }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{]))}
+\NormalTok{    df\_va\_m }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(ols\_df\_tr[va\_k, , }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{], }\FunctionTok{as.data.frame}\NormalTok{(pls\_k}\SpecialCharTok{$}\NormalTok{T\_te[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{m, }\AttributeTok{drop =} \ConstantTok{FALSE}\NormalTok{]))}
+    
+\NormalTok{    mod\_m  }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y\_tr[tr\_k] }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =}\NormalTok{ df\_tr\_m)}
+\NormalTok{    pred\_m }\OtherTok{\textless{}{-}} \FunctionTok{suppressWarnings}\NormalTok{(}\FunctionTok{predict}\NormalTok{(mod\_m, }\AttributeTok{newdata =}\NormalTok{ df\_va\_m))}
+\NormalTok{    cv\_mspe[k, j] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{((pred\_m }\SpecialCharTok{{-}}\NormalTok{ y\_tr[va\_k])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{\}}
+
+\CommentTok{\# Select M that minimizes 5{-}fold CV MSPE}
+\NormalTok{mean\_cv\_mspe }\OtherTok{\textless{}{-}} \FunctionTok{colMeans}\NormalTok{(cv\_mspe)}
+\NormalTok{m\_opt        }\OtherTok{\textless{}{-}}\NormalTok{ m\_grid[}\FunctionTok{which.min}\NormalTok{(mean\_cv\_mspe)]}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(mean\_cv\_mspe, }\DecValTok{4}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    M=1    M=2    M=3    M=5    M=8   M=10   M=15   M=20   M=25   M=30 
+## 0.1488 0.1321 0.1229 0.1136 0.1145 0.1176 0.1231 0.1259 0.1274 0.1281
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Optimal number of PLS components (M\_opt):"}\NormalTok{, m\_opt, }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Optimal number of PLS components (M_opt): 5
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Refit PLS on the full training set using m\_opt and evaluate on the test set}
+\NormalTok{pls\_full }\OtherTok{\textless{}{-}} \FunctionTok{fit\_sparse\_pls}\NormalTok{(X\_text\_tr, }\FunctionTok{resid}\NormalTok{(fit\_ols), X\_text\_te, }\AttributeTok{ncomp =}\NormalTok{ m\_opt)}
+
+\NormalTok{fit\_pls\_cv  }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y\_tr }\SpecialCharTok{\textasciitilde{}}\NormalTok{ ., }\AttributeTok{data =} \FunctionTok{cbind}\NormalTok{(ols\_df\_tr, }\FunctionTok{as.data.frame}\NormalTok{(pls\_full}\SpecialCharTok{$}\NormalTok{T\_tr)))}
+\NormalTok{pred\_pls\_cv }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_pls\_cv, }\AttributeTok{newdata =} \FunctionTok{cbind}\NormalTok{(ols\_df\_te, }\FunctionTok{as.data.frame}\NormalTok{(pls\_full}\SpecialCharTok{$}\NormalTok{T\_te)))}
+
+\CommentTok{\# {-}{-}{-} 4. NEW: Hybrid Factor{-}Augmented Penalized Regression {-}{-}{-}}
+\CommentTok{\# Combine controls + 30 PCA factors (unpenalized) + raw text terms (penalized)}
+\NormalTok{X\_hyb\_tr }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(X\_ctrl[train\_idx, ],  }\FunctionTok{Matrix}\NormalTok{(F\_tr[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{r\_opt], }\AttributeTok{sparse =} \ConstantTok{TRUE}\NormalTok{), X\_text\_tr)}
+\NormalTok{X\_hyb\_te }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(X\_ctrl[}\SpecialCharTok{{-}}\NormalTok{train\_idx, ], }\FunctionTok{Matrix}\NormalTok{(F\_te[, }\DecValTok{1}\SpecialCharTok{:}\NormalTok{r\_opt], }\AttributeTok{sparse =} \ConstantTok{TRUE}\NormalTok{), X\_text\_te)}
+
+\NormalTok{pf\_hyb }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, p\_ctrl), }\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, r\_opt), }\FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, p\_text))}
+
+\NormalTok{cv\_hyb\_lasso   }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_hyb\_tr, y\_tr, }\AttributeTok{alpha =} \DecValTok{1}\NormalTok{,   }\AttributeTok{penalty.factor =}\NormalTok{ pf\_hyb)}
+\NormalTok{cv\_hyb\_elastic }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_hyb\_tr, y\_tr, }\AttributeTok{alpha =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{penalty.factor =}\NormalTok{ pf\_hyb)}
+
+\NormalTok{pred\_hyb\_lasso   }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_hyb\_lasso,   }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{, }\AttributeTok{newx =}\NormalTok{ X\_hyb\_te))}
+\NormalTok{pred\_hyb\_elastic }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_hyb\_elastic, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{, }\AttributeTok{newx =}\NormalTok{ X\_hyb\_te))}
+\end{Highlighting}
+\end{Shaded}
+
+Scree plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# {-}{-}{-} PCA Scree Plot (Marginal \& Cumulative PVE) {-}{-}{-}}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+
+\NormalTok{pve     }\OtherTok{\textless{}{-}} \DecValTok{100} \SpecialCharTok{*}\NormalTok{ (pca\_fit}\SpecialCharTok{$}\NormalTok{sdev}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{ncol}\NormalTok{(X\_text\_tr)}
+\NormalTok{cum\_pve }\OtherTok{\textless{}{-}} \FunctionTok{cumsum}\NormalTok{(pve)}
+
+\NormalTok{scree\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{PC      =} \FunctionTok{seq\_along}\NormalTok{(pve),}
+  \AttributeTok{PVE     =}\NormalTok{ pve,}
+  \AttributeTok{Cum\_PVE =}\NormalTok{ cum\_pve}
+\NormalTok{)}
+
+\FunctionTok{cat}\NormalTok{(}\FunctionTok{sprintf}\NormalTok{(}\StringTok{"Top 30 PCs explain \%.2f\%\% of total variance in X\_text (Top 50: \%.2f\%\%)}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}
+\NormalTok{            cum\_pve[r\_opt], cum\_pve[r\_max]))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Top 30 PCs explain 12.09% of total variance in X_text (Top 50: 15.50%)
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Side{-}by{-}side base R scree plot (matches ISLR / lecture style)}
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{), }\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\FloatTok{4.5}\NormalTok{, }\FloatTok{4.5}\NormalTok{, }\DecValTok{3}\NormalTok{, }\FloatTok{1.5}\NormalTok{))}
+
+\FunctionTok{plot}\NormalTok{(scree\_df}\SpecialCharTok{$}\NormalTok{PC, scree\_df}\SpecialCharTok{$}\NormalTok{PVE, }\AttributeTok{type =} \StringTok{"b"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{, }\AttributeTok{cex =} \FloatTok{0.7}\NormalTok{, }\AttributeTok{col =} \StringTok{"\#1B4F72"}\NormalTok{,}
+     \AttributeTok{xlab =} \StringTok{"Principal Component (k)"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Proportion of Variance Explained (\%)"}\NormalTok{,}
+     \AttributeTok{main =} \StringTok{"Scree Plot (Marginal PVE)"}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{v =}\NormalTok{ r\_opt, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.5}\NormalTok{)}
+
+\FunctionTok{plot}\NormalTok{(scree\_df}\SpecialCharTok{$}\NormalTok{PC, scree\_df}\SpecialCharTok{$}\NormalTok{Cum\_PVE, }\AttributeTok{type =} \StringTok{"b"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{, }\AttributeTok{cex =} \FloatTok{0.7}\NormalTok{, }\AttributeTok{col =} \StringTok{"\#2E86C1"}\NormalTok{,}
+     \AttributeTok{xlab =} \StringTok{"Principal Component (k)"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Cumulative PVE (\%)"}\NormalTok{,}
+     \AttributeTok{main =} \StringTok{"Cumulative Variance Explained"}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{v =}\NormalTok{ r\_opt, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \FloatTok{1.5}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{JobAnalysis_files/figure-latex/unnamed-chunk-6-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+The performance table.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# {-}{-}{-} Evaluation Table (MSPE and Out{-}of{-}Sample R\^{}2) {-}{-}{-}}
+\NormalTok{eval\_model }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(pred, actual) \{}
+\NormalTok{  mspe }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{((pred }\SpecialCharTok{{-}}\NormalTok{ actual)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{  r2   }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((actual }\SpecialCharTok{{-}}\NormalTok{ pred)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((actual }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(actual))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+  \FunctionTok{c}\NormalTok{(}\AttributeTok{MSPE =}\NormalTok{ mspe, }\AttributeTok{OOS\_R2 =}\NormalTok{ r2)}
+\NormalTok{\}}
+
+\NormalTok{results }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(}
+  \AttributeTok{Baseline\_OLS     =} \FunctionTok{eval\_model}\NormalTok{(pred\_ols,         y\_te),}
+  \AttributeTok{Full\_OLS         =} \FunctionTok{eval\_model}\NormalTok{(pred\_full\_ols,    y\_te),}
+  \AttributeTok{Factor\_PCA\_30    =} \FunctionTok{eval\_model}\NormalTok{(pred\_fa,          y\_te),}
+  \AttributeTok{Factor\_PLS\_CV    =} \FunctionTok{eval\_model}\NormalTok{(pred\_pls\_cv,      y\_te),}
+  \AttributeTok{Ridge            =} \FunctionTok{eval\_model}\NormalTok{(pred\_ridge,       y\_te),}
+  \AttributeTok{Lasso            =} \FunctionTok{eval\_model}\NormalTok{(pred\_lasso,       y\_te),}
+  \AttributeTok{Elastic\_Net      =} \FunctionTok{eval\_model}\NormalTok{(pred\_elastic,     y\_te),}
+  \AttributeTok{Adaptive\_Lasso   =} \FunctionTok{eval\_model}\NormalTok{(pred\_adapt,       y\_te),}
+  \AttributeTok{Hybrid\_FA\_Lasso  =} \FunctionTok{eval\_model}\NormalTok{(pred\_hyb\_lasso,   y\_te),}
+  \AttributeTok{Hybrid\_FA\_ENet   =} \FunctionTok{eval\_model}\NormalTok{(pred\_hyb\_elastic, y\_te)}
+\NormalTok{)}
+
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(results, }\DecValTok{4}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                   MSPE OOS_R2
+## Baseline_OLS    0.1987 0.3250
+## Full_OLS        0.1117 0.6206
+## Factor_PCA_30   0.1351 0.5411
+## Factor_PLS_CV   0.1074 0.6351
+## Ridge           0.0992 0.6630
+## Lasso           0.1006 0.6582
+## Elastic_Net     0.1006 0.6582
+## Adaptive_Lasso  0.1031 0.6498
+## Hybrid_FA_Lasso 0.1004 0.6589
+## Hybrid_FA_ENet  0.1004 0.6589
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{barplot}\NormalTok{(results[,}\DecValTok{1}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{JobAnalysis_files/figure-latex/unnamed-chunk-7-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{barplot}\NormalTok{(results[,}\DecValTok{2}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{JobAnalysis_files/figure-latex/unnamed-chunk-7-2.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(m\_grid, mean\_cv\_mspe, }\AttributeTok{type =} \StringTok{"b"}\NormalTok{, }\AttributeTok{pch =} \DecValTok{19}\NormalTok{,}
+     \AttributeTok{xlab =} \StringTok{"Number of PLS Components (M)"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"5{-}Fold CV MSPE"}\NormalTok{,}
+     \AttributeTok{main =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"PLS Cross{-}Validation Error (Optimal M = "}\NormalTok{, m\_opt, }\StringTok{")"}\NormalTok{))}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{v =}\NormalTok{ m\_opt, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{JobAnalysis_files/figure-latex/unnamed-chunk-7-3.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 1. Count non{-}zero text coefficients (excluding intercept and controls)}
+\NormalTok{count\_nz }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(cv\_mod) \{}
+\NormalTok{  b }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{coef}\NormalTok{(cv\_mod, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{))[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+  \FunctionTok{sum}\NormalTok{(b[(p\_ctrl }\SpecialCharTok{+} \DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(b)] }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{)}
+\NormalTok{\}}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Non{-}zero text terms {-}\textgreater{} Ridge:"}\NormalTok{, }\FunctionTok{count\_nz}\NormalTok{(cv\_ridge),}
+    \StringTok{"| Elastic Net:"}\NormalTok{, }\FunctionTok{count\_nz}\NormalTok{(cv\_elastic),}
+    \StringTok{"| Lasso:"}\NormalTok{, }\FunctionTok{count\_nz}\NormalTok{(cv\_lasso),}
+    \StringTok{"| Adaptive Lasso:"}\NormalTok{, }\FunctionTok{count\_nz}\NormalTok{(cv\_adapt), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Non-zero text terms -> Ridge: 4476 | Elastic Net: 2319 | Lasso: 2314 | Adaptive Lasso: 1993
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 2. Sanity check: inspect the top 15 positive and negative Lasso text coefficients}
+\NormalTok{lasso\_b }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{coef}\NormalTok{(cv\_lasso, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{))[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+\NormalTok{text\_b  }\OtherTok{\textless{}{-}}\NormalTok{ lasso\_b[(p\_ctrl }\SpecialCharTok{+} \DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(lasso\_b)]}
+\FunctionTok{names}\NormalTok{(text\_b) }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(X\_text)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{Top 15 Highest{-}Wage Terms:}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Top 15 Highest-Wage Terms:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(}\FunctionTok{sort}\NormalTok{(text\_b, }\AttributeTok{decreasing =} \ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{15}\NormalTok{], }\DecValTok{4}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   equal_workplac       good_stand  success_perform         autonomi 
+##           0.0499           0.0463           0.0408           0.0399 
+##     take_account    determin_base    employ_person  requir_accommod 
+##           0.0398           0.0370           0.0369           0.0367 
+##            reloc       engin_join            manag      disabl_need 
+##           0.0348           0.0344           0.0342           0.0338 
+##            coupl     job_categori categori_protect 
+##           0.0330           0.0313           0.0307
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{Top 15 Lowest{-}Wage Terms:}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Top 15 Lowest-Wage Terms:
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(}\FunctionTok{sort}\NormalTok{(text\_b, }\AttributeTok{decreasing =} \ConstantTok{FALSE}\NormalTok{)[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{15}\NormalTok{], }\DecValTok{4}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##            alli         diploma     high_school     long_period           start 
+##         -0.0817         -0.0762         -0.0549         -0.0522         -0.0492 
+##          assist     resum_cover microsoft_offic      terminolog  varieti_factor 
+##         -0.0477         -0.0438         -0.0387         -0.0380         -0.0378 
+##              id     load_unload          deserv    ancestri_sex highest_qualiti 
+##         -0.0367         -0.0364         -0.0345         -0.0344         -0.0344
+\end{verbatim}
+
+Now again to see sparsity vs.~prediction trade-off using
+s=``lambda.1se'' (1-standard-error rule)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Helper to evaluate any cv.glmnet object at "lambda.min" or "lambda.1se"}
+\NormalTok{eval\_cv }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(cv\_mod, s\_rule) \{}
+\NormalTok{  pred }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_mod, }\AttributeTok{s =}\NormalTok{ s\_rule, }\AttributeTok{newx =}\NormalTok{ X\_te))}
+\NormalTok{  mspe }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{((pred }\SpecialCharTok{{-}}\NormalTok{ y\_te)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{  r2   }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((y\_te }\SpecialCharTok{{-}}\NormalTok{ pred)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((y\_te }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(y\_te))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{  b    }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{coef}\NormalTok{(cv\_mod, }\AttributeTok{s =}\NormalTok{ s\_rule))[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]}
+\NormalTok{  nz   }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(b[(p\_ctrl }\SpecialCharTok{+} \DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(b)] }\SpecialCharTok{!=} \DecValTok{0}\NormalTok{)}
+  \FunctionTok{c}\NormalTok{(}\AttributeTok{MSPE =} \FunctionTok{round}\NormalTok{(mspe, }\DecValTok{4}\NormalTok{), }\AttributeTok{OOS\_R2 =} \FunctionTok{round}\NormalTok{(r2, }\DecValTok{4}\NormalTok{), }\AttributeTok{NonZero\_Text =}\NormalTok{ nz)}
+\NormalTok{\}}
+
+\NormalTok{sparsity\_tradeoff }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(}
+  \AttributeTok{Lasso\_min      =} \FunctionTok{eval\_cv}\NormalTok{(cv\_lasso,   }\StringTok{"lambda.min"}\NormalTok{),}
+  \AttributeTok{Lasso\_1se      =} \FunctionTok{eval\_cv}\NormalTok{(cv\_lasso,   }\StringTok{"lambda.1se"}\NormalTok{),}
+  \AttributeTok{ElasticNet\_min =} \FunctionTok{eval\_cv}\NormalTok{(cv\_elastic, }\StringTok{"lambda.min"}\NormalTok{),}
+  \AttributeTok{ElasticNet\_1se =} \FunctionTok{eval\_cv}\NormalTok{(cv\_elastic, }\StringTok{"lambda.1se"}\NormalTok{),}
+  \AttributeTok{AdaptLasso\_min =} \FunctionTok{eval\_cv}\NormalTok{(cv\_adapt,   }\StringTok{"lambda.min"}\NormalTok{),}
+  \AttributeTok{AdaptLasso\_1se =} \FunctionTok{eval\_cv}\NormalTok{(cv\_adapt,   }\StringTok{"lambda.1se"}\NormalTok{)}
+\NormalTok{)}
+
+\FunctionTok{print}\NormalTok{(sparsity\_tradeoff)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                  MSPE OOS_R2 NonZero_Text
+## Lasso_min      0.1006 0.6582         2314
+## Lasso_1se      0.1016 0.6547         1584
+## ElasticNet_min 0.1006 0.6582         2319
+## ElasticNet_1se 0.1013 0.6559         1705
+## AdaptLasso_min 0.1031 0.6498         1993
+## AdaptLasso_1se 0.1032 0.6492         1545
+\end{verbatim}
+
+\section{Looking at Target Skills}\label{looking-at-target-skills}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(desla)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'desla' was built under R version 4.6.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(hdm)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'hdm' was built under R version 4.6.2
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 1. Check which target skills exist in your stemmed DTM}
+\NormalTok{candidates }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"python"}\NormalTok{, }\StringTok{"sql"}\NormalTok{, }\StringTok{"excel"}\NormalTok{, }\StringTok{"cloud"}\NormalTok{, }\StringTok{"aws"}\NormalTok{, }\StringTok{"ai"}\NormalTok{, }\StringTok{"machin\_learn"}\NormalTok{,}
+                \StringTok{"manag"}\NormalTok{, }\StringTok{"leadership"}\NormalTok{, }\StringTok{"communic"}\NormalTok{, }\StringTok{"sale"}\NormalTok{, }\StringTok{"nurs"}\NormalTok{, }\StringTok{"account"}\NormalTok{)}
+\NormalTok{target\_skills }\OtherTok{\textless{}{-}} \FunctionTok{intersect}\NormalTok{(candidates, }\FunctionTok{colnames}\NormalTok{(X\_text))}
+\FunctionTok{print}\NormalTok{(target\_skills)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] "python"       "sql"          "excel"        "cloud"        "ai"          
+##  [6] "machin_learn" "manag"        "leadership"   "communic"     "sale"        
+## [11] "nurs"         "account"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 2. For computational speed in desla, keep controls + top 500 text features (plus targets)}
+\NormalTok{top\_terms }\OtherTok{\textless{}{-}} \FunctionTok{names}\NormalTok{(}\FunctionTok{sort}\NormalTok{(}\FunctionTok{colSums}\NormalTok{(X\_text }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{), }\AttributeTok{decreasing =} \ConstantTok{TRUE}\NormalTok{))[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{500}\NormalTok{]}
+\NormalTok{keep\_text }\OtherTok{\textless{}{-}} \FunctionTok{union}\NormalTok{(top\_terms, target\_skills)}
+
+\ControlFlowTok{if}\NormalTok{ (binary }\SpecialCharTok{==} \ConstantTok{FALSE}\NormalTok{) \{}
+\NormalTok{  X\_inf }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(X\_ctrl), }\FunctionTok{as.matrix}\NormalTok{(X\_text[, keep\_text]))}
+\NormalTok{\} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{  X\_inf\_bin  }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(}\FunctionTok{as.matrix}\NormalTok{(X\_ctrl), }\FunctionTok{as.matrix}\NormalTok{(X\_text\_bin[, keep\_text]))}
+\NormalTok{\}}
+
+\NormalTok{H\_idx }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(X\_inf) }\SpecialCharTok{\%in\%}\NormalTok{ target\_skills)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Runs valid high{-}dimensional inference on the columns in H\_idx}
+\NormalTok{ds\_fit }\OtherTok{\textless{}{-}} \FunctionTok{rlassoEffects}\NormalTok{(}\AttributeTok{x =}\NormalTok{ X\_inf, }\AttributeTok{y =}\NormalTok{ y, }\AttributeTok{index =}\NormalTok{ H\_idx)}
+\FunctionTok{summary}\NormalTok{(ds\_fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Estimates and significance testing of the effect of target variables"
+##              Estimate. Std. Error t value Pr(>|t|)    
+## manag         0.041619   0.005230   7.958 1.74e-15 ***
+## communic     -0.003631   0.008409  -0.432 0.665906    
+## excel        -0.023952   0.006665  -3.593 0.000326 ***
+## account      -0.001267   0.002149  -0.590 0.555455    
+## leadership    0.023561   0.004289   5.493 3.95e-08 ***
+## sale         -0.002195   0.001385  -1.585 0.112985    
+## python        0.043075   0.005151   8.362  < 2e-16 ***
+## sql           0.008480   0.003419   2.480 0.013122 *  
+## cloud         0.008885   0.001884   4.716 2.40e-06 ***
+## ai            0.007601   0.001855   4.098 4.17e-05 ***
+## machin_learn  0.019550   0.003425   5.708 1.14e-08 ***
+## nurs          0.006214   0.001273   4.882 1.05e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{confint}\NormalTok{(ds\_fit)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                     2.5 %        97.5 %
+## manag         0.031369361  0.0518688129
+## communic     -0.020111138  0.0128499320
+## excel        -0.037016112 -0.0108878793
+## account      -0.005480199  0.0029455283
+## leadership    0.015153902  0.0319674583
+## sale         -0.004909572  0.0005194271
+## python        0.032978478  0.0531716400
+## sql           0.001779485  0.0151813116
+## cloud         0.005192334  0.0125772210
+## ai            0.003965479  0.0112370402
+## machin_learn  0.012836876  0.0262624240
+## nurs          0.003719011  0.0087082077
+\end{verbatim}
+
+If X\_inf is TF-IDF: A coefficient of 0.0418 for python means a 1-unit
+increase in the TF-IDF score of ``python'' is associated with an
+approximate \(+4.2\%\) higher wage. If X\_inf is binary 0/1: You can
+interpret 0.0418 directly as an approximate \(+4.27\%\)
+(\(e^{0.0418} - 1\)) wage premium for mentioning Python in the ad. Here
+it is TF-IDF.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+
+\CommentTok{\# 1. Extract estimates, p{-}values, and 95\% CIs from ds\_fit}
+\NormalTok{sum\_tab }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(ds\_fit)}\SpecialCharTok{$}\NormalTok{coefficients}
+\NormalTok{ci\_tab  }\OtherTok{\textless{}{-}} \FunctionTok{confint}\NormalTok{(ds\_fit)}
+
+\NormalTok{plot\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{raw\_skill =} \FunctionTok{rownames}\NormalTok{(sum\_tab),}
+  \AttributeTok{estimate  =}\NormalTok{ sum\_tab[, }\StringTok{"Estimate."}\NormalTok{],}
+  \AttributeTok{p\_val     =}\NormalTok{ sum\_tab[, }\StringTok{"Pr(\textgreater{}|t|)"}\NormalTok{],}
+  \AttributeTok{ci\_low    =}\NormalTok{ ci\_tab[, }\DecValTok{1}\NormalTok{],}
+  \AttributeTok{ci\_high   =}\NormalTok{ ci\_tab[, }\DecValTok{2}\NormalTok{],}
+  \AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}
+\NormalTok{)}
+
+\CommentTok{\# 2. Map stemmed tokens to clean paper{-}ready labels}
+\NormalTok{label\_map }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \AttributeTok{python       =} \StringTok{"Python"}\NormalTok{,}
+  \AttributeTok{manag        =} \StringTok{"Management"}\NormalTok{,}
+  \AttributeTok{leadership   =} \StringTok{"Leadership"}\NormalTok{,}
+  \AttributeTok{machin\_learn =} \StringTok{"Machine Learning"}\NormalTok{,}
+  \AttributeTok{sql          =} \StringTok{"SQL"}\NormalTok{,}
+  \AttributeTok{ai           =} \StringTok{"AI"}\NormalTok{,}
+  \AttributeTok{cloud        =} \StringTok{"Cloud"}\NormalTok{,}
+  \AttributeTok{nurs         =} \StringTok{"Nursing"}\NormalTok{,}
+  \AttributeTok{account      =} \StringTok{"Accounting / Account"}\NormalTok{,}
+  \AttributeTok{sale         =} \StringTok{"Sales"}\NormalTok{,}
+  \AttributeTok{communic     =} \StringTok{"Communication"}\NormalTok{,}
+  \AttributeTok{excel        =} \StringTok{"Excel"}
+\NormalTok{)}
+
+\NormalTok{bonf\_alpha }\OtherTok{\textless{}{-}} \FloatTok{0.05} \SpecialCharTok{/} \FunctionTok{nrow}\NormalTok{(plot\_df)}
+
+\NormalTok{plot\_df }\OtherTok{\textless{}{-}}\NormalTok{ plot\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{label =} \FunctionTok{ifelse}\NormalTok{(raw\_skill }\SpecialCharTok{\%in\%} \FunctionTok{names}\NormalTok{(label\_map), label\_map[raw\_skill], raw\_skill),}
+    \AttributeTok{sig\_group =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{      p\_val }\SpecialCharTok{\textless{}}\NormalTok{ bonf\_alpha }\SpecialCharTok{\textasciitilde{}} \StringTok{"Significant (Bonferroni p \textless{} 0.0042)"}\NormalTok{,}
+\NormalTok{      p\_val }\SpecialCharTok{\textless{}} \FloatTok{0.05}       \SpecialCharTok{\textasciitilde{}} \StringTok{"Significant (Nominal p \textless{} 0.05)"}\NormalTok{,}
+      \ConstantTok{TRUE}               \SpecialCharTok{\textasciitilde{}} \StringTok{"Not Significant"}
+\NormalTok{    ),}
+    \AttributeTok{sig\_group =} \FunctionTok{factor}\NormalTok{(sig\_group, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"Significant (Bonferroni p \textless{} 0.0042)"}\NormalTok{,}
+      \StringTok{"Significant (Nominal p \textless{} 0.05)"}\NormalTok{,}
+      \StringTok{"Not Significant"}
+\NormalTok{    ))}
+\NormalTok{  )}
+
+\CommentTok{\# 3. Build the coefficient plot}
+\NormalTok{p\_skills }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(plot\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ estimate, }\AttributeTok{y =} \FunctionTok{reorder}\NormalTok{(label, estimate), }\AttributeTok{color =}\NormalTok{ sig\_group)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =} \DecValTok{0}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"grey40"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_errorbarh}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{xmin =}\NormalTok{ ci\_low, }\AttributeTok{xmax =}\NormalTok{ ci\_high), }\AttributeTok{height =} \FloatTok{0.22}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.75}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \FloatTok{2.8}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+    \StringTok{"Significant (Bonferroni p \textless{} 0.0042)"} \OtherTok{=} \StringTok{"\#1B4F72"}\NormalTok{,}
+    \StringTok{"Significant (Nominal p \textless{} 0.05)"}      \OtherTok{=} \StringTok{"\#D4AC0D"}\NormalTok{,}
+    \StringTok{"Not Significant"}                     \OtherTok{=} \StringTok{"\#95A5A6"}
+\NormalTok{  )) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title    =} \StringTok{"Estimated Log{-}Wage Premia of Selected Labor Market Skills"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"Double{-}Selection Lasso (rlassoEffects) with 95\% Confidence Intervals"}\NormalTok{,}
+    \AttributeTok{x        =} \StringTok{"Estimated Effect on Log Annual Wage (per 1{-}unit TF{-}IDF)"}\NormalTok{,}
+    \AttributeTok{y        =} \ConstantTok{NULL}\NormalTok{,}
+    \AttributeTok{color    =} \ConstantTok{NULL}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{11}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{legend.position   =} \StringTok{"bottom"}\NormalTok{,}
+    \AttributeTok{panel.grid.minor  =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{plot.title        =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+    \AttributeTok{axis.text.y       =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{size =} \DecValTok{10}\NormalTok{)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: `geom_errorbarh()` was deprecated in ggplot2 4.0.0.
+## i Please use the `orientation` argument of `geom_errorbar()` instead.
+## This warning is displayed once per session.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(p\_skills)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `height` was translated to `width`.
+\end{verbatim}
+
+\pandocbounded{\includegraphics[keepaspectratio]{JobAnalysis_files/figure-latex/unnamed-chunk-12-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 4. Export high{-}resolution figure for your PDF paper}
+\FunctionTok{ggsave}\NormalTok{(}\StringTok{"skill\_wage\_premia.png"}\NormalTok{, }\AttributeTok{plot =}\NormalTok{ p\_skills, }\AttributeTok{width =} \FloatTok{7.5}\NormalTok{, }\AttributeTok{height =} \DecValTok{5}\NormalTok{, }\AttributeTok{dpi =} \DecValTok{300}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `height` was translated to `width`.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Or PDF for LaTeX:}
+\CommentTok{\# ggsave("skill\_wage\_premia.pdf", plot = p\_skills, width = 7.5, height = 5)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Extract raw estimates and p{-}values from your rlassoEffects object}
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{summary}\NormalTok{(ds\_fit)}\SpecialCharTok{$}\NormalTok{coefficients)}
+\FunctionTok{colnames}\NormalTok{(res) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Estimate"}\NormalTok{, }\StringTok{"SE"}\NormalTok{, }\StringTok{"t\_stat"}\NormalTok{, }\StringTok{"p\_raw"}\NormalTok{)}
+
+\CommentTok{\# Apply multiple{-}testing adjustments across the M = 12 hypotheses}
+\NormalTok{res}\SpecialCharTok{$}\NormalTok{p\_bonf }\OtherTok{\textless{}{-}} \FunctionTok{p.adjust}\NormalTok{(res}\SpecialCharTok{$}\NormalTok{p\_raw, }\AttributeTok{method =} \StringTok{"bonferroni"}\NormalTok{)}
+\NormalTok{res}\SpecialCharTok{$}\NormalTok{p\_holm }\OtherTok{\textless{}{-}} \FunctionTok{p.adjust}\NormalTok{(res}\SpecialCharTok{$}\NormalTok{p\_raw, }\AttributeTok{method =} \StringTok{"holm"}\NormalTok{)}
+
+\CommentTok{\# Flag significance at the 5\% level under each rule}
+\NormalTok{res}\SpecialCharTok{$}\NormalTok{sig\_nominal }\OtherTok{\textless{}{-}}\NormalTok{ res}\SpecialCharTok{$}\NormalTok{p\_raw  }\SpecialCharTok{\textless{}} \FloatTok{0.05}
+\NormalTok{res}\SpecialCharTok{$}\NormalTok{sig\_bonf    }\OtherTok{\textless{}{-}}\NormalTok{ res}\SpecialCharTok{$}\NormalTok{p\_bonf }\SpecialCharTok{\textless{}} \FloatTok{0.05}
+\NormalTok{res}\SpecialCharTok{$}\NormalTok{sig\_holm    }\OtherTok{\textless{}{-}}\NormalTok{ res}\SpecialCharTok{$}\NormalTok{p\_holm }\SpecialCharTok{\textless{}} \FloatTok{0.05}
+
+\CommentTok{\# Sort from smallest to largest raw p{-}value}
+\NormalTok{res }\OtherTok{\textless{}{-}}\NormalTok{ res[}\FunctionTok{order}\NormalTok{(res}\SpecialCharTok{$}\NormalTok{p\_raw), ]}
+\FunctionTok{print}\NormalTok{(res[, }\FunctionTok{c}\NormalTok{(}\StringTok{"Estimate"}\NormalTok{, }\StringTok{"p\_raw"}\NormalTok{, }\StringTok{"p\_bonf"}\NormalTok{, }\StringTok{"p\_holm"}\NormalTok{, }\StringTok{"sig\_bonf"}\NormalTok{, }\StringTok{"sig\_holm"}\NormalTok{)], }\AttributeTok{digits =} \DecValTok{4}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               Estimate     p_raw    p_bonf    p_holm sig_bonf sig_holm
+## python        0.043075 6.177e-17 7.412e-16 7.412e-16     TRUE     TRUE
+## manag         0.041619 1.742e-15 2.091e-14 1.916e-14     TRUE     TRUE
+## machin_learn  0.019550 1.143e-08 1.372e-07 1.143e-07     TRUE     TRUE
+## leadership    0.023561 3.953e-08 4.743e-07 3.557e-07     TRUE     TRUE
+## nurs          0.006214 1.051e-06 1.261e-05 8.404e-06     TRUE     TRUE
+## cloud         0.008885 2.404e-06 2.885e-05 1.683e-05     TRUE     TRUE
+## ai            0.007601 4.173e-05 5.008e-04 2.504e-04     TRUE     TRUE
+## excel        -0.023952 3.263e-04 3.916e-03 1.632e-03     TRUE     TRUE
+## sql           0.008480 1.312e-02 1.575e-01 5.249e-02    FALSE    FALSE
+## sale         -0.002195 1.130e-01 1.000e+00 3.390e-01    FALSE    FALSE
+## account      -0.001267 5.555e-01 1.000e+00 1.000e+00    FALSE    FALSE
+## communic     -0.003631 6.659e-01 1.000e+00 1.000e+00    FALSE    FALSE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Simultaneous 95\% confidence bands across all 12 skills (multiplier bootstrap)}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{42}\NormalTok{)}
+\NormalTok{ci\_joint }\OtherTok{\textless{}{-}} \FunctionTok{confint}\NormalTok{(ds\_fit, }\AttributeTok{level =} \FloatTok{0.95}\NormalTok{, }\AttributeTok{joint =} \ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(ci\_joint, }\DecValTok{4}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                2.5 %  97.5 %
+## manag         0.0273  0.0559
+## communic     -0.0267  0.0195
+## excel        -0.0425 -0.0054
+## account      -0.0066  0.0041
+## leadership    0.0114  0.0358
+## sale         -0.0063  0.0019
+## python        0.0231  0.0631
+## sql          -0.0082  0.0252
+## cloud         0.0021  0.0157
+## ai            0.0007  0.0145
+## machin_learn  0.0079  0.0312
+## nurs          0.0021  0.0103
+\end{verbatim}
+
+\section{Tree-Guided Aggregation}\label{tree-guided-aggregation}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# Install from CRAN (or r{-}universe if CRAN mirror is slow):}
+\DocumentationTok{\#\# install.packages("rare")}
+\CommentTok{\#library(rare)}
+\CommentTok{\#library(Matrix)}
+\CommentTok{\#}
+\DocumentationTok{\#\# 1. Select top 300 text features (plus target skills) strictly from training data}
+\CommentTok{\#top\_300   \textless{}{-} names(sort(colSums(X\_text\_tr \textgreater{} 0), decreasing = TRUE))[1:50]}
+\CommentTok{\#rare\_cols \textless{}{-} union(top\_300, target\_skills)}
+\CommentTok{\#}
+\CommentTok{\#X\_rare\_tr \textless{}{-} X\_text\_tr[, rare\_cols]}
+\CommentTok{\#X\_rare\_te \textless{}{-} X\_text\_te[, rare\_cols]}
+\CommentTok{\#}
+\DocumentationTok{\#\# Target = wage residuals after unpenalized baseline controls (exp\_level, work\_type, remote, state)}
+\CommentTok{\#y\_res\_tr \textless{}{-} as.numeric(resid(fit\_ols))}
+\CommentTok{\#}
+\DocumentationTok{\#\# 2. Build hierarchical clustering tree (dendrogram) on TRAINING features only}
+\DocumentationTok{\#\# Correlation distance places co{-}occurring / related skills in the same branches}
+\CommentTok{\#cor\_mat  \textless{}{-} cor(as.matrix(X\_rare\_tr))}
+\CommentTok{\#dist\_mat \textless{}{-} as.dist(1 {-} cor\_mat)}
+\CommentTok{\#hc\_tree  \textless{}{-} hclust(dist\_mat, method = "average")}
+\CommentTok{\#}
+\DocumentationTok{\#\# 3. Fit the 2D regularization path (lambda = shrinkage, alpha = fusion vs. sparsity)}
+\DocumentationTok{\#\# Note: Use a smaller grid first to verify speed on your machine}
+\CommentTok{\#set.seed(42)}
+\CommentTok{\#rare\_fit \textless{}{-} rarefit(}
+\CommentTok{\#  y             = y\_res\_tr,}
+\CommentTok{\#  X             = X\_rare\_tr,}
+\CommentTok{\#  hc            = hc\_tree,}
+\CommentTok{\#  nlam          = 20,}
+\CommentTok{\#  nalpha        = 5,}
+\CommentTok{\#  lam.min.ratio = 1e{-}4,}
+\CommentTok{\#  eps1          = 1e{-}5,}
+\CommentTok{\#  eps2          = 1e{-}4,}
+\CommentTok{\#  maxite        = 1e4}
+\CommentTok{\#)}
+\CommentTok{\#}
+\DocumentationTok{\#\# 4. Select optimal (lambda, alpha) via 5{-}fold cross{-}validation}
+\CommentTok{\#set.seed(42)}
+\CommentTok{\#rare\_cv \textless{}{-} rarefit.cv(}
+\CommentTok{\#  fitObj = rare\_fit,}
+\CommentTok{\#  y      = y\_res\_tr,}
+\CommentTok{\#  X      = X\_rare\_tr,}
+\CommentTok{\#  nfolds = 5}
+\CommentTok{\#)}
+\CommentTok{\#}
+\CommentTok{\#cat("Optimal alpha:", rare\_fit$alpha[rare\_cv$ibest[2]],}
+\CommentTok{\#    "| Optimal lambda:", round(rare\_fit$lambda[rare\_cv$ibest[1]], 5), "\textbackslash{}n")}
+\CommentTok{\#}
+\DocumentationTok{\#\# 5. Predict on the test set and add back baseline OLS predictions}
+\CommentTok{\#pred\_rare\_res \textless{}{-} as.numeric(rarefit.predict(fitObj = rare\_fit, cvObj = rare\_cv, newx = X\_rare\_te))}
+\CommentTok{\#pred\_rare     \textless{}{-} as.numeric(pred\_ols) + pred\_rare\_res}
+\CommentTok{\#}
+\DocumentationTok{\#\# Evaluate for your horse race table}
+\CommentTok{\#print(round(eval\_model(pred\_rare, y\_te), 4))}
+\end{Highlighting}
+\end{Shaded}
+
+Extract word groups.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DocumentationTok{\#\# Recover the aggregated feature groups at the CV{-}optimal (lambda, alpha)}
+\CommentTok{\#best\_lam\_idx   \textless{}{-} rare\_cv$ibest[1]}
+\CommentTok{\#best\_alpha\_idx \textless{}{-} rare\_cv$ibest[2]}
+\CommentTok{\#}
+\CommentTok{\#gamma\_opt \textless{}{-} rare\_fit$gamma[[best\_alpha\_idx]][, best\_lam\_idx]}
+\CommentTok{\#groups    \textless{}{-} group.recover(gamma\_opt, rare\_fit$A)}
+\CommentTok{\#}
+\DocumentationTok{\#\# Print multi{-}word clusters (groups with 2 or more fused terms)}
+\CommentTok{\#multi\_groups \textless{}{-} Filter(function(g) length(g) \textgreater{}= 2, groups)}
+\CommentTok{\#cat("Number of fused multi{-}word clusters:", length(multi\_groups), "\textbackslash{}n")}
+\CommentTok{\#}
+\CommentTok{\#for (i in seq\_len(min(10, length(multi\_groups)))) \{}
+\CommentTok{\#  cat("Cluster", i, ":", paste(colnames(X\_rare\_tr)[multi\_groups[[i]]], collapse = ", "), "\textbackslash{}n")}
+\CommentTok{\#\}}
+\end{Highlighting}
+\end{Shaded}
+
+Try Tree-Guided Aggregation with glmnet instead of rare
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(glmnet)}
+\FunctionTok{library}\NormalTok{(Matrix)}
+
+\CommentTok{\# 1. Fast sparse correlation matrix (no densification of X\_text\_tr)}
+\NormalTok{sparse\_cor }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(X) \{}
+\NormalTok{  n  }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(X)}
+\NormalTok{  mu }\OtherTok{\textless{}{-}}\NormalTok{ Matrix}\SpecialCharTok{::}\FunctionTok{colMeans}\NormalTok{(X)}
+\NormalTok{  sd }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{pmax}\NormalTok{(}\DecValTok{0}\NormalTok{, Matrix}\SpecialCharTok{::}\FunctionTok{colMeans}\NormalTok{(X}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{{-}}\NormalTok{ mu}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{))}
+\NormalTok{  sd[sd }\SpecialCharTok{==} \DecValTok{0}\NormalTok{] }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{  cov\_mat }\OtherTok{\textless{}{-}}\NormalTok{ (}\FunctionTok{as.matrix}\NormalTok{(Matrix}\SpecialCharTok{::}\FunctionTok{crossprod}\NormalTok{(X)) }\SpecialCharTok{/}\NormalTok{ n) }\SpecialCharTok{{-}} \FunctionTok{tcrossprod}\NormalTok{(mu)}
+\NormalTok{  cor\_mat }\OtherTok{\textless{}{-}}\NormalTok{ cov\_mat }\SpecialCharTok{/} \FunctionTok{tcrossprod}\NormalTok{(sd)}
+\NormalTok{  cor\_mat[cor\_mat }\SpecialCharTok{\textgreater{}}  \DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}}  \DecValTok{1}
+\NormalTok{  cor\_mat[cor\_mat }\SpecialCharTok{\textless{}} \SpecialCharTok{{-}}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \SpecialCharTok{{-}}\DecValTok{1}
+  \FunctionTok{diag}\NormalTok{(cor\_mat) }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{  cor\_mat}
+\NormalTok{\}}
+
+\CommentTok{\# 2. Build sparse tree matrix A, keeping all p leaves + internal branches of size \textless{}= max\_size}
+\NormalTok{build\_tree\_matrix\_capped }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(hc, }\AttributeTok{max\_size =} \DecValTok{50}\NormalTok{) \{}
+\NormalTok{  p }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(hc}\SpecialCharTok{$}\NormalTok{order)}
+\NormalTok{  m }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(hc}\SpecialCharTok{$}\NormalTok{merge)}
+\NormalTok{  desc }\OtherTok{\textless{}{-}} \FunctionTok{vector}\NormalTok{(}\StringTok{"list"}\NormalTok{, p }\SpecialCharTok{+}\NormalTok{ m)}
+  \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \FunctionTok{seq\_len}\NormalTok{(p)) desc[[j]] }\OtherTok{\textless{}{-}}\NormalTok{ j}
+  \ControlFlowTok{for}\NormalTok{ (k }\ControlFlowTok{in} \FunctionTok{seq\_len}\NormalTok{(m)) \{}
+\NormalTok{    left  }\OtherTok{\textless{}{-}}\NormalTok{ hc}\SpecialCharTok{$}\NormalTok{merge[k, }\DecValTok{1}\NormalTok{]}
+\NormalTok{    right }\OtherTok{\textless{}{-}}\NormalTok{ hc}\SpecialCharTok{$}\NormalTok{merge[k, }\DecValTok{2}\NormalTok{]}
+\NormalTok{    idx\_l }\OtherTok{\textless{}{-}} \ControlFlowTok{if}\NormalTok{ (left  }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{) }\SpecialCharTok{{-}}\NormalTok{left  }\ControlFlowTok{else}\NormalTok{ p }\SpecialCharTok{+}\NormalTok{ left}
+\NormalTok{    idx\_r }\OtherTok{\textless{}{-}} \ControlFlowTok{if}\NormalTok{ (right }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{) }\SpecialCharTok{{-}}\NormalTok{right }\ControlFlowTok{else}\NormalTok{ p }\SpecialCharTok{+}\NormalTok{ right}
+\NormalTok{    desc[[p }\SpecialCharTok{+}\NormalTok{ k]] }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(desc[[idx\_l]], desc[[idx\_r]])}
+\NormalTok{  \}}
+  \CommentTok{\# Keep all leaves (1:p) and only internal nodes with \textless{}= max\_size words}
+\NormalTok{  keep\_idx  }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(}\FunctionTok{seq\_along}\NormalTok{(desc) }\SpecialCharTok{\textless{}=}\NormalTok{ p }\SpecialCharTok{|} \FunctionTok{lengths}\NormalTok{(desc) }\SpecialCharTok{\textless{}=}\NormalTok{ max\_size)}
+\NormalTok{  desc\_keep }\OtherTok{\textless{}{-}}\NormalTok{ desc[keep\_idx]}
+  
+\NormalTok{  i\_idx }\OtherTok{\textless{}{-}} \FunctionTok{unlist}\NormalTok{(desc\_keep)}
+\NormalTok{  j\_idx }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\FunctionTok{seq\_along}\NormalTok{(desc\_keep), }\FunctionTok{lengths}\NormalTok{(desc\_keep))}
+  \FunctionTok{list}\NormalTok{(}
+    \AttributeTok{A    =} \FunctionTok{sparseMatrix}\NormalTok{(}\AttributeTok{i =}\NormalTok{ i\_idx, }\AttributeTok{j =}\NormalTok{ j\_idx, }\AttributeTok{x =} \DecValTok{1}\NormalTok{, }\AttributeTok{dims =} \FunctionTok{c}\NormalTok{(p, }\FunctionTok{length}\NormalTok{(desc\_keep))),}
+    \AttributeTok{desc =}\NormalTok{ desc\_keep}
+\NormalTok{  )}
+\NormalTok{\}}
+
+\CommentTok{\# 3. Cluster all 4,496 text features on the TRAINING set only (\textasciitilde{}20{-}45 sec)}
+\NormalTok{cor\_mat  }\OtherTok{\textless{}{-}} \FunctionTok{sparse\_cor}\NormalTok{(X\_text\_tr)}
+\NormalTok{hc\_tree  }\OtherTok{\textless{}{-}} \FunctionTok{hclust}\NormalTok{(}\FunctionTok{as.dist}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ cor\_mat), }\AttributeTok{method =} \StringTok{"average"}\NormalTok{)}
+\NormalTok{tree\_obj }\OtherTok{\textless{}{-}} \FunctionTok{build\_tree\_matrix\_capped}\NormalTok{(hc\_tree, }\AttributeTok{max\_size =} \DecValTok{50}\NormalTok{)}
+\FunctionTok{rm}\NormalTok{(cor\_mat); }\FunctionTok{gc}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##             used   (Mb) gc trigger   (Mb)  max used   (Mb)
+## Ncells   6004320  320.7    8698445  464.6   8698445  464.6
+## Vcells 187783246 1432.7  493206220 3762.9 493206220 3762.9
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 4. Form aggregated tree matrix Z = X * A (all leaves + capped internal branches)}
+\NormalTok{Z\_tr }\OtherTok{\textless{}{-}}\NormalTok{ X\_text\_tr }\SpecialCharTok{\%*\%}\NormalTok{ tree\_obj}\SpecialCharTok{$}\NormalTok{A}
+\NormalTok{Z\_te }\OtherTok{\textless{}{-}}\NormalTok{ X\_text\_te }\SpecialCharTok{\%*\%}\NormalTok{ tree\_obj}\SpecialCharTok{$}\NormalTok{A}
+
+\NormalTok{X\_tag\_tr }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(X\_ctrl[train\_idx, ],  Z\_tr)}
+\NormalTok{X\_tag\_te }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(X\_ctrl[}\SpecialCharTok{{-}}\NormalTok{train\_idx, ], Z\_te)}
+\NormalTok{pf\_tag   }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, p\_ctrl), }\FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, }\FunctionTok{ncol}\NormalTok{(Z\_tr)))}
+
+\CommentTok{\# 5. Fit Tree{-}Guided Aggregation via CV (nfolds = 5 keeps runtime \textasciitilde{}1{-}2 min)}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{42}\NormalTok{)}
+\NormalTok{cv\_tree\_agg   }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X\_tag\_tr, y\_tr, }\AttributeTok{alpha =} \DecValTok{1}\NormalTok{, }\AttributeTok{penalty.factor =}\NormalTok{ pf\_tag, }\AttributeTok{nfolds =} \DecValTok{5}\NormalTok{)}
+\NormalTok{pred\_tree\_agg }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{predict}\NormalTok{(cv\_tree\_agg, }\AttributeTok{s =} \StringTok{"lambda.min"}\NormalTok{, }\AttributeTok{newx =}\NormalTok{ X\_tag\_te))}
+
+\FunctionTok{print}\NormalTok{(}\FunctionTok{round}\NormalTok{(}\FunctionTok{eval\_model}\NormalTok{(pred\_tree\_agg, y\_te), }\DecValTok{4}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   MSPE OOS_R2 
+## 0.1006 0.6582
+\end{verbatim}
+
+Inspect.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# 6. Inspect top fused skill clusters (at lambda.1se for parsimony)}
+\NormalTok{p\_full\_text }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(X\_text\_tr)}
+\NormalTok{gamma\_hat   }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{coef}\NormalTok{(cv\_tree\_agg, }\AttributeTok{s =} \StringTok{"lambda.1se"}\NormalTok{))[}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{][(p\_ctrl }\SpecialCharTok{+} \DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\FunctionTok{ncol}\NormalTok{(X\_tag\_tr)]}
+\NormalTok{active\_br   }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(gamma\_hat }\SpecialCharTok{!=} \DecValTok{0} \SpecialCharTok{\&} \FunctionTok{seq\_along}\NormalTok{(gamma\_hat) }\SpecialCharTok{\textgreater{}}\NormalTok{ p\_full\_text)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Active fused branches (at lambda.1se):"}\NormalTok{, }\FunctionTok{length}\NormalTok{(active\_br), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Active fused branches (at lambda.1se): 387
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{top\_br }\OtherTok{\textless{}{-}}\NormalTok{ active\_br[}\FunctionTok{order}\NormalTok{(}\FunctionTok{abs}\NormalTok{(gamma\_hat[active\_br]), }\AttributeTok{decreasing =} \ConstantTok{TRUE}\NormalTok{)]}
+\ControlFlowTok{for}\NormalTok{ (b }\ControlFlowTok{in} \FunctionTok{head}\NormalTok{(top\_br, }\DecValTok{10}\NormalTok{)) \{}
+\NormalTok{  words }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(X\_text\_tr)[tree\_obj}\SpecialCharTok{$}\NormalTok{desc[[b]]]}
+  \FunctionTok{cat}\NormalTok{(}\FunctionTok{sprintf}\NormalTok{(}\StringTok{"Gamma = \%+.4f | Words (\%d): \%s}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{,}
+\NormalTok{              gamma\_hat[b], }\FunctionTok{length}\NormalTok{(words), }\FunctionTok{paste}\NormalTok{(words, }\AttributeTok{collapse =} \StringTok{", "}\NormalTok{)))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Gamma = -0.0222 | Words (2): specialist, entry-level
+## Gamma = +0.0211 | Words (2): track_record, proven_track
+## Gamma = +0.0183 | Words (2): attorney, litig
+## Gamma = +0.0179 | Words (2): reloc, reloc_assist
+## Gamma = +0.0177 | Words (2): script, python
+## Gamma = +0.0154 | Words (2): lead, lead_team
+## Gamma = +0.0151 | Words (2): manag_job, manag_join
+## Gamma = +0.0150 | Words (2): manag_experi, experi_manag
+## Gamma = +0.0148 | Words (3): state-of-the-art, cutting-edg, revolution
+## Gamma = +0.0144 | Words (2): program_offer, reward_program
+\end{verbatim}
+
+Final predicitons:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# {-}{-}{-} Formal Prediction Comparison (Paired t{-}test on Test Squared Errors vs. Ridge) {-}{-}{-}}
+\NormalTok{pred\_list }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}
+  \AttributeTok{Baseline\_OLS    =}\NormalTok{ pred\_ols,}
+  \AttributeTok{Full\_OLS        =}\NormalTok{ pred\_full\_ols,}
+  \AttributeTok{Factor\_PCA\_30   =}\NormalTok{ pred\_fa,}
+  \AttributeTok{Factor\_PLS\_CV   =}\NormalTok{ pred\_pls\_cv,}
+  \AttributeTok{Lasso           =}\NormalTok{ pred\_lasso,}
+  \AttributeTok{Elastic\_Net     =}\NormalTok{ pred\_elastic,}
+  \AttributeTok{Adaptive\_Lasso  =}\NormalTok{ pred\_adapt,}
+  \AttributeTok{Hybrid\_FA\_Lasso =}\NormalTok{ pred\_hyb\_lasso,}
+  \AttributeTok{Hybrid\_FA\_ENet  =}\NormalTok{ pred\_hyb\_elastic,}
+  \AttributeTok{Tree\_Agg\_Lasso  =}\NormalTok{ pred\_tree\_agg}
+\NormalTok{)}
+
+\NormalTok{e2\_ridge }\OtherTok{\textless{}{-}}\NormalTok{ (y\_te }\SpecialCharTok{{-}}\NormalTok{ pred\_ridge)}\SpecialCharTok{\^{}}\DecValTok{2}
+
+\NormalTok{dm\_table }\OtherTok{\textless{}{-}} \FunctionTok{do.call}\NormalTok{(rbind, }\FunctionTok{lapply}\NormalTok{(}\FunctionTok{names}\NormalTok{(pred\_list), }\ControlFlowTok{function}\NormalTok{(m\_name) \{}
+\NormalTok{  e2\_m }\OtherTok{\textless{}{-}}\NormalTok{ (y\_te }\SpecialCharTok{{-}}\NormalTok{ pred\_list[[m\_name]])}\SpecialCharTok{\^{}}\DecValTok{2}
+\NormalTok{  diff }\OtherTok{\textless{}{-}}\NormalTok{ e2\_ridge }\SpecialCharTok{{-}}\NormalTok{ e2\_m  }\CommentTok{\# Negative = Ridge has lower squared error}
+\NormalTok{  tt   }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(diff)}
+  \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{Model       =}\NormalTok{ m\_name,}
+    \AttributeTok{MSPE\_Diff   =} \FunctionTok{round}\NormalTok{(}\FunctionTok{mean}\NormalTok{(diff), }\DecValTok{5}\NormalTok{),}
+    \AttributeTok{t\_stat      =} \FunctionTok{round}\NormalTok{(}\FunctionTok{as.numeric}\NormalTok{(tt}\SpecialCharTok{$}\NormalTok{statistic), }\DecValTok{3}\NormalTok{),}
+    \AttributeTok{p\_value     =} \FunctionTok{signif}\NormalTok{(tt}\SpecialCharTok{$}\NormalTok{p.value, }\DecValTok{4}\NormalTok{),}
+    \AttributeTok{Sig\_5pct    =}\NormalTok{ tt}\SpecialCharTok{$}\NormalTok{p.value }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{,}
+    \AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}
+\NormalTok{  )}
+\NormalTok{\}))}
+
+\FunctionTok{print}\NormalTok{(dm\_table, }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##            Model MSPE_Diff  t_stat    p_value Sig_5pct
+##     Baseline_OLS  -0.09949 -36.524 1.040e-266     TRUE
+##         Full_OLS  -0.01249 -10.568  6.699e-26     TRUE
+##    Factor_PCA_30  -0.03588 -20.788  4.346e-93     TRUE
+##    Factor_PLS_CV  -0.00821 -11.713  2.197e-31     TRUE
+##            Lasso  -0.00143  -2.415  1.576e-02     TRUE
+##      Elastic_Net  -0.00140  -2.391  1.682e-02     TRUE
+##   Adaptive_Lasso  -0.00388  -5.290  1.264e-07     TRUE
+##  Hybrid_FA_Lasso  -0.00122  -2.244  2.484e-02     TRUE
+##   Hybrid_FA_ENet  -0.00120  -2.261  2.380e-02     TRUE
+##   Tree_Agg_Lasso  -0.00141  -2.577  9.986e-03     TRUE
+\end{verbatim}
+
+Visual comparison.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# install.packages("patchwork") \# run once if not installed}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(patchwork)}
+
+\CommentTok{\# 1. Convert your \textasciigrave{}results\textasciigrave{} matrix into a clean plotting data frame}
+\NormalTok{results }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(}
+  \AttributeTok{Baseline\_OLS     =} \FunctionTok{eval\_model}\NormalTok{(pred\_ols,         y\_te),}
+  \AttributeTok{Full\_OLS         =} \FunctionTok{eval\_model}\NormalTok{(pred\_full\_ols,    y\_te),}
+  \AttributeTok{Factor\_PCA\_30    =} \FunctionTok{eval\_model}\NormalTok{(pred\_fa,          y\_te),}
+  \AttributeTok{Factor\_PLS\_CV    =} \FunctionTok{eval\_model}\NormalTok{(pred\_pls\_cv,      y\_te),}
+  \AttributeTok{Ridge            =} \FunctionTok{eval\_model}\NormalTok{(pred\_ridge,       y\_te),}
+  \AttributeTok{Lasso            =} \FunctionTok{eval\_model}\NormalTok{(pred\_lasso,       y\_te),}
+  \AttributeTok{Elastic\_Net      =} \FunctionTok{eval\_model}\NormalTok{(pred\_elastic,     y\_te),}
+  \AttributeTok{Adaptive\_Lasso   =} \FunctionTok{eval\_model}\NormalTok{(pred\_adapt,       y\_te),}
+  \AttributeTok{Hybrid\_FA\_Lasso  =} \FunctionTok{eval\_model}\NormalTok{(pred\_hyb\_lasso,   y\_te),}
+  \AttributeTok{Hybrid\_FA\_ENet   =} \FunctionTok{eval\_model}\NormalTok{(pred\_hyb\_elastic, y\_te),}
+  \AttributeTok{Tree\_Agg\_Lasso   =} \FunctionTok{eval\_model}\NormalTok{(pred\_tree\_agg,    y\_te)   }\CommentTok{\# \textless{}{-}{-} add this line}
+\NormalTok{)}
+
+\NormalTok{perf\_df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{raw\_name =} \FunctionTok{rownames}\NormalTok{(results),}
+  \AttributeTok{MSPE     =} \FunctionTok{as.numeric}\NormalTok{(results[, }\StringTok{"MSPE"}\NormalTok{]),}
+  \AttributeTok{OOS\_R2   =} \FunctionTok{as.numeric}\NormalTok{(results[, }\StringTok{"OOS\_R2"}\NormalTok{]) }\SpecialCharTok{*} \DecValTok{100}\NormalTok{,}
+  \AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}
+\NormalTok{)}
+
+\CommentTok{\# Clean display labels and model families}
+\NormalTok{label\_map }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \AttributeTok{Baseline\_OLS    =} \StringTok{"Baseline OLS"}\NormalTok{,}
+  \AttributeTok{Full\_OLS        =} \StringTok{"Full OLS"}\NormalTok{,}
+  \AttributeTok{Factor\_PCA\_30   =} \StringTok{"Factor PCA (30)"}\NormalTok{,}
+  \AttributeTok{Factor\_PLS\_CV   =} \StringTok{"Factor PLS (CV)"}\NormalTok{,}
+  \AttributeTok{Ridge           =} \StringTok{"Ridge"}\NormalTok{,}
+  \AttributeTok{Lasso           =} \StringTok{"Lasso"}\NormalTok{,}
+  \AttributeTok{Elastic\_Net     =} \StringTok{"Elastic Net"}\NormalTok{,}
+  \AttributeTok{Adaptive\_Lasso  =} \StringTok{"Adaptive Lasso"}\NormalTok{,}
+  \AttributeTok{Hybrid\_FA\_Lasso =} \StringTok{"Hybrid FA{-}Lasso"}\NormalTok{,}
+  \AttributeTok{Hybrid\_FA\_ENet  =} \StringTok{"Hybrid FA{-}ENet"}\NormalTok{,}
+  \AttributeTok{Tree\_Agg\_Lasso  =} \StringTok{"Tree{-}Guided Agg."}
+\NormalTok{)}
+
+\NormalTok{perf\_df }\OtherTok{\textless{}{-}}\NormalTok{ perf\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{Model =} \FunctionTok{ifelse}\NormalTok{(raw\_name }\SpecialCharTok{\%in\%} \FunctionTok{names}\NormalTok{(label\_map), label\_map[raw\_name], raw\_name),}
+    \AttributeTok{Family =} \FunctionTok{case\_when}\NormalTok{(}
+\NormalTok{      raw\_name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Baseline\_OLS"}\NormalTok{, }\StringTok{"Full\_OLS"}\NormalTok{)                  }\SpecialCharTok{\textasciitilde{}} \StringTok{"OLS Benchmarks"}\NormalTok{,}
+\NormalTok{      raw\_name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Factor\_PCA\_30"}\NormalTok{, }\StringTok{"Factor\_PLS\_CV"}\NormalTok{)            }\SpecialCharTok{\textasciitilde{}} \StringTok{"Factor / Dimension Reduction"}\NormalTok{,}
+\NormalTok{      raw\_name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Hybrid\_FA\_Lasso"}\NormalTok{, }\StringTok{"Hybrid\_FA\_ENet"}\NormalTok{)         }\SpecialCharTok{\textasciitilde{}} \StringTok{"Hybrid Factor + Penalized"}\NormalTok{,}
+\NormalTok{      raw\_name }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"Tree\_Agg\_Lasso"}\NormalTok{)                            }\SpecialCharTok{\textasciitilde{}} \StringTok{"Structured Fusion"}\NormalTok{,}
+      \ConstantTok{TRUE}                                                         \SpecialCharTok{\textasciitilde{}} \StringTok{"Penalized Regression"}
+\NormalTok{    ),}
+    \AttributeTok{Family =} \FunctionTok{factor}\NormalTok{(Family, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"Penalized Regression"}\NormalTok{,}
+      \StringTok{"Hybrid Factor + Penalized"}\NormalTok{,}
+      \StringTok{"Factor / Dimension Reduction"}\NormalTok{,}
+      \StringTok{"Structured Fusion"}\NormalTok{,}
+      \StringTok{"OLS Benchmarks"}
+\NormalTok{    )),}
+    \CommentTok{\# Order models so the lowest MSPE (best) is at the top}
+    \AttributeTok{Model   =} \FunctionTok{reorder}\NormalTok{(Model, }\SpecialCharTok{{-}}\NormalTok{MSPE),}
+    \AttributeTok{is\_best =}\NormalTok{ MSPE }\SpecialCharTok{==} \FunctionTok{min}\NormalTok{(MSPE),}
+    \AttributeTok{mspe\_lab =} \FunctionTok{ifelse}\NormalTok{(is\_best, }\FunctionTok{sprintf}\NormalTok{(}\StringTok{"\%.4f (Best)"}\NormalTok{, MSPE), }\FunctionTok{sprintf}\NormalTok{(}\StringTok{"\%.4f"}\NormalTok{, MSPE)),}
+    \AttributeTok{r2\_lab   =} \FunctionTok{sprintf}\NormalTok{(}\StringTok{"\%.2f\%\%"}\NormalTok{, OOS\_R2)}
+\NormalTok{  )}
+
+\CommentTok{\# Benchmark values for Full OLS reference line}
+\NormalTok{ols\_mspe }\OtherTok{\textless{}{-}}\NormalTok{ perf\_df}\SpecialCharTok{$}\NormalTok{MSPE[perf\_df}\SpecialCharTok{$}\NormalTok{raw\_name }\SpecialCharTok{==} \StringTok{"Full\_OLS"}\NormalTok{]}
+\NormalTok{ols\_r2   }\OtherTok{\textless{}{-}}\NormalTok{ perf\_df}\SpecialCharTok{$}\NormalTok{OOS\_R2[perf\_df}\SpecialCharTok{$}\NormalTok{raw\_name }\SpecialCharTok{==} \StringTok{"Full\_OLS"}\NormalTok{]}
+
+\NormalTok{pal }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"Penalized Regression"}         \OtherTok{=} \StringTok{"\#1B4F72"}\NormalTok{,}
+  \StringTok{"Hybrid Factor + Penalized"}    \OtherTok{=} \StringTok{"\#148F77"}\NormalTok{,}
+  \StringTok{"Factor / Dimension Reduction"} \OtherTok{=} \StringTok{"\#D4AC0D"}\NormalTok{,}
+  \StringTok{"Structured Fusion"}            \OtherTok{=} \StringTok{"\#8E44AD"}\NormalTok{,}
+  \StringTok{"OLS Benchmarks"}               \OtherTok{=} \StringTok{"\#7F8C8D"}
+\NormalTok{)}
+
+\CommentTok{\# 2. Panel A: Out{-}of{-}Sample MSPE (Lower is Better)}
+\NormalTok{p\_mspe }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(perf\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ MSPE, }\AttributeTok{y =}\NormalTok{ Model, }\AttributeTok{fill =}\NormalTok{ Family)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =}\NormalTok{ ols\_mspe, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#C0392B"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.7}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{(}\AttributeTok{width =} \FloatTok{0.65}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{label =}\NormalTok{ mspe\_lab, }\AttributeTok{fontface =} \FunctionTok{ifelse}\NormalTok{(is\_best, }\StringTok{"bold"}\NormalTok{, }\StringTok{"plain"}\NormalTok{)),}
+            \AttributeTok{hjust =} \SpecialCharTok{{-}}\FloatTok{0.1}\NormalTok{, }\AttributeTok{size =} \FloatTok{3.2}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#2C3E50"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{annotate}\NormalTok{(}\StringTok{"label"}\NormalTok{, }\AttributeTok{x =}\NormalTok{ ols\_mspe, }\AttributeTok{y =} \FunctionTok{nrow}\NormalTok{(perf\_df) }\SpecialCharTok{+} \FloatTok{0.85}\NormalTok{,}
+           \AttributeTok{label =} \FunctionTok{sprintf}\NormalTok{(}\StringTok{"Full OLS (\%.4f)"}\NormalTok{, ols\_mspe),}
+           \AttributeTok{size =} \FloatTok{2.8}\NormalTok{, }\AttributeTok{fontface =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#C0392B"}\NormalTok{,}
+           \AttributeTok{fill =} \StringTok{"\#FDEDEC"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.25}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ pal, }\AttributeTok{drop =} \ConstantTok{TRUE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{limits =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FunctionTok{max}\NormalTok{(perf\_df}\SpecialCharTok{$}\NormalTok{MSPE) }\SpecialCharTok{*} \FloatTok{1.25}\NormalTok{), }\AttributeTok{expand =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_y\_discrete}\NormalTok{(}\AttributeTok{expand =} \FunctionTok{expansion}\NormalTok{(}\AttributeTok{add =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.6}\NormalTok{, }\FloatTok{1.35}\NormalTok{))) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Out{-}of{-}Sample Prediction Error (MSPE)"}\NormalTok{,}
+    \AttributeTok{x     =} \StringTok{"Test MSPE (Lower is Better)"}\NormalTok{,}
+    \AttributeTok{y     =} \ConstantTok{NULL}\NormalTok{,}
+    \AttributeTok{fill  =} \ConstantTok{NULL}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{11}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{panel.grid.major.y =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{panel.grid.minor   =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{plot.title         =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#1B365D"}\NormalTok{, }\AttributeTok{size =} \FloatTok{11.5}\NormalTok{),}
+    \AttributeTok{axis.text.y        =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{size =} \DecValTok{10}\NormalTok{),}
+    \AttributeTok{plot.margin        =} \FunctionTok{margin}\NormalTok{(}\DecValTok{5}\NormalTok{, }\DecValTok{18}\NormalTok{, }\DecValTok{5}\NormalTok{, }\DecValTok{5}\NormalTok{)  }\CommentTok{\# prevents 0.25 and 0 from touching}
+\NormalTok{  )}
+
+\CommentTok{\# 3. Panel B: Out{-}of{-}Sample R\^{}2 (Higher is Better)}
+\NormalTok{p\_r2 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(perf\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ OOS\_R2, }\AttributeTok{y =}\NormalTok{ Model, }\AttributeTok{fill =}\NormalTok{ Family)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_vline}\NormalTok{(}\AttributeTok{xintercept =}\NormalTok{ ols\_r2, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#C0392B"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.7}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_col}\NormalTok{(}\AttributeTok{width =} \FloatTok{0.65}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{label =}\NormalTok{ r2\_lab, }\AttributeTok{fontface =} \FunctionTok{ifelse}\NormalTok{(is\_best, }\StringTok{"bold"}\NormalTok{, }\StringTok{"plain"}\NormalTok{)),}
+            \AttributeTok{hjust =} \SpecialCharTok{{-}}\FloatTok{0.12}\NormalTok{, }\AttributeTok{size =} \FloatTok{3.2}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#2C3E50"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{annotate}\NormalTok{(}\StringTok{"label"}\NormalTok{, }\AttributeTok{x =}\NormalTok{ ols\_r2, }\AttributeTok{y =} \FunctionTok{nrow}\NormalTok{(perf\_df) }\SpecialCharTok{+} \FloatTok{0.85}\NormalTok{,}
+           \AttributeTok{label =} \FunctionTok{sprintf}\NormalTok{(}\StringTok{"Full OLS (\%.2f\%\%)"}\NormalTok{, ols\_r2),}
+           \AttributeTok{size =} \FloatTok{2.8}\NormalTok{, }\AttributeTok{fontface =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#C0392B"}\NormalTok{,}
+           \AttributeTok{fill =} \StringTok{"\#FDEDEC"}\NormalTok{, }\AttributeTok{linewidth =} \FloatTok{0.25}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ pal, }\AttributeTok{drop =} \ConstantTok{TRUE}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{limits =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FunctionTok{max}\NormalTok{(perf\_df}\SpecialCharTok{$}\NormalTok{OOS\_R2) }\SpecialCharTok{*} \FloatTok{1.22}\NormalTok{), }\AttributeTok{expand =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_y\_discrete}\NormalTok{(}\AttributeTok{expand =} \FunctionTok{expansion}\NormalTok{(}\AttributeTok{add =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.6}\NormalTok{, }\FloatTok{1.35}\NormalTok{))) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Out{-}of{-}Sample Variance Explained (R²)"}\NormalTok{,}
+    \AttributeTok{x     =} \StringTok{"Out{-}of{-}Sample R² \% (Higher is Better)"}\NormalTok{,}
+    \AttributeTok{y     =} \ConstantTok{NULL}\NormalTok{,}
+    \AttributeTok{fill  =} \ConstantTok{NULL}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{11}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{panel.grid.major.y =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{panel.grid.minor   =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{plot.title         =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#1B365D"}\NormalTok{, }\AttributeTok{size =} \FloatTok{11.5}\NormalTok{),}
+    \AttributeTok{axis.text.y        =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{plot.margin        =} \FunctionTok{margin}\NormalTok{(}\DecValTok{5}\NormalTok{, }\DecValTok{10}\NormalTok{, }\DecValTok{5}\NormalTok{, }\DecValTok{10}\NormalTok{)}
+\NormalTok{  )}
+
+\CommentTok{\# 4. Combine panels with single{-}row horizontal legend}
+\NormalTok{p\_horse\_race }\OtherTok{\textless{}{-}}\NormalTok{ (p\_mspe }\SpecialCharTok{|}\NormalTok{ p\_r2) }\SpecialCharTok{+}
+  \FunctionTok{plot\_layout}\NormalTok{(}\AttributeTok{guides =} \StringTok{"collect"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{plot\_annotation}\NormalTok{(}
+    \AttributeTok{title    =} \StringTok{"Model Performance Horse Race: Predicting US Log Annual Wages"}\NormalTok{,}
+    \AttributeTok{subtitle =} \FunctionTok{paste0}\NormalTok{(}\StringTok{"20\% Held{-}Out Test Set (N = "}\NormalTok{, }\FunctionTok{format}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(jobs), }\AttributeTok{big.mark =} \StringTok{","}\NormalTok{),}
+                      \StringTok{" US LinkedIn Postings; p\_text = "}\NormalTok{, }\FunctionTok{format}\NormalTok{(p\_text, }\AttributeTok{big.mark =} \StringTok{","}\NormalTok{),}
+                      \StringTok{" TF{-}IDF Features + Controls)"}\NormalTok{),}
+    \AttributeTok{theme =} \FunctionTok{theme}\NormalTok{(}
+      \AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}
+      \AttributeTok{plot.title      =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{size =} \FloatTok{13.5}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#1B365D"}\NormalTok{, }\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{),}
+      \AttributeTok{plot.subtitle   =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{10}\NormalTok{, }\AttributeTok{color =} \StringTok{"\#5A6772"}\NormalTok{, }\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{)}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{\&} \FunctionTok{guides}\NormalTok{(}\AttributeTok{fill =} \FunctionTok{guide\_legend}\NormalTok{(}\AttributeTok{nrow =} \DecValTok{1}\NormalTok{))}
+
+\FunctionTok{print}\NormalTok{(p\_horse\_race)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{JobAnalysis_files/figure-latex/unnamed-chunk-20-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggsave}\NormalTok{(}\StringTok{"model\_performance\_comparison.png"}\NormalTok{, }\AttributeTok{plot =}\NormalTok{ p\_horse\_race, }\AttributeTok{width =} \DecValTok{12}\NormalTok{, }\AttributeTok{height =} \FloatTok{5.8}\NormalTok{, }\AttributeTok{dpi =} \DecValTok{300}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+
+\end{document}

@@ -2,7 +2,9 @@
 title: "JobAnalysis"
 author: "Can"
 date: "2026-11-20"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -31,7 +33,7 @@ Explore the data to see how it distributed/looks.
 # Put this at the top of your Data Exploration chunk (set to Inf for the full dataset)
 # 2. Clean target variable (log annual USD base salary) and baseline controls
 
-N_sample <- 20000
+N_sample <- 40000
 
 jobs <- kaggleData %>%
   filter(
@@ -292,6 +294,40 @@ cv_hyb_elastic <- cv.glmnet(X_hyb_tr, y_tr, alpha = 0.5, penalty.factor = pf_hyb
 pred_hyb_lasso   <- as.numeric(predict(cv_hyb_lasso,   s = "lambda.min", newx = X_hyb_te))
 pred_hyb_elastic <- as.numeric(predict(cv_hyb_elastic, s = "lambda.min", newx = X_hyb_te))
 ```
+Scree plot.
+
+```{r}
+# --- PCA Scree Plot (Marginal & Cumulative PVE) ---
+library(ggplot2)
+
+pve     <- 100 * (pca_fit$sdev^2) / ncol(X_text_tr)
+cum_pve <- cumsum(pve)
+
+scree_df <- data.frame(
+  PC      = seq_along(pve),
+  PVE     = pve,
+  Cum_PVE = cum_pve
+)
+
+cat(sprintf("Top 30 PCs explain %.2f%% of total variance in X_text (Top 50: %.2f%%)\n",
+            cum_pve[r_opt], cum_pve[r_max]))
+
+# Side-by-side base R scree plot (matches ISLR / lecture style)
+par(mfrow = c(1, 2), mar = c(4.5, 4.5, 3, 1.5))
+
+plot(scree_df$PC, scree_df$PVE, type = "b", pch = 19, cex = 0.7, col = "#1B4F72",
+     xlab = "Principal Component (k)", ylab = "Proportion of Variance Explained (%)",
+     main = "Scree Plot (Marginal PVE)")
+abline(v = r_opt, col = "red", lty = 2, lwd = 1.5)
+
+plot(scree_df$PC, scree_df$Cum_PVE, type = "b", pch = 19, cex = 0.7, col = "#2E86C1",
+     xlab = "Principal Component (k)", ylab = "Cumulative PVE (%)",
+     main = "Cumulative Variance Explained")
+abline(v = r_opt, col = "red", lty = 2, lwd = 1.5)
+
+par(mfrow = c(1, 1))
+```
+
 
 The performance table.
 
@@ -604,10 +640,24 @@ Try Tree-Guided Aggregation with glmnet instead of rare
 library(glmnet)
 library(Matrix)
 
-# Helper: build the p x (2p - 1) sparse tree descendant matrix A from hclust()
-build_tree_matrix <- function(hc) {
+# 1. Fast sparse correlation matrix (no densification of X_text_tr)
+sparse_cor <- function(X) {
+  n  <- nrow(X)
+  mu <- Matrix::colMeans(X)
+  sd <- sqrt(pmax(0, Matrix::colMeans(X^2) - mu^2))
+  sd[sd == 0] <- 1
+  cov_mat <- (as.matrix(Matrix::crossprod(X)) / n) - tcrossprod(mu)
+  cor_mat <- cov_mat / tcrossprod(sd)
+  cor_mat[cor_mat >  1] <-  1
+  cor_mat[cor_mat < -1] <- -1
+  diag(cor_mat) <- 1
+  cor_mat
+}
+
+# 2. Build sparse tree matrix A, keeping all p leaves + internal branches of size <= max_size
+build_tree_matrix_capped <- function(hc, max_size = 50) {
   p <- length(hc$order)
-  m <- nrow(hc$merge) # p - 1 internal nodes
+  m <- nrow(hc$merge)
   desc <- vector("list", p + m)
   for (j in seq_len(p)) desc[[j]] <- j
   for (k in seq_len(m)) {
@@ -617,63 +667,245 @@ build_tree_matrix <- function(hc) {
     idx_r <- if (right < 0) -right else p + right
     desc[[p + k]] <- c(desc[[idx_l]], desc[[idx_r]])
   }
-  i_idx <- unlist(desc)
-  j_idx <- rep(seq_along(desc), lengths(desc))
+  # Keep all leaves (1:p) and only internal nodes with <= max_size words
+  keep_idx  <- which(seq_along(desc) <= p | lengths(desc) <= max_size)
+  desc_keep <- desc[keep_idx]
+  
+  i_idx <- unlist(desc_keep)
+  j_idx <- rep(seq_along(desc_keep), lengths(desc_keep))
   list(
-    A    = sparseMatrix(i = i_idx, j = j_idx, x = 1, dims = c(p, p + m)),
-    desc = desc
+    A    = sparseMatrix(i = i_idx, j = j_idx, x = 1, dims = c(p, length(desc_keep))),
+    desc = desc_keep
   )
 }
 
-# 1. Select top 500 text terms (plus target skills) strictly from training data
-top_500   <- names(sort(colSums(X_text_tr > 0), decreasing = TRUE))[1:500]
-tree_cols <- union(top_500, target_skills)
-
-X_tree_tr <- X_text_tr[, tree_cols]
-X_tree_te <- X_text_te[, tree_cols]
-
-# 2. Build hierarchical clustering tree on TRAINING features only
-cor_mat  <- cor(as.matrix(X_tree_tr))
+# 3. Cluster all 4,496 text features on the TRAINING set only (~20-45 sec)
+cor_mat  <- sparse_cor(X_text_tr)
 hc_tree  <- hclust(as.dist(1 - cor_mat), method = "average")
-tree_obj <- build_tree_matrix(hc_tree)
-A_mat    <- tree_obj$A
+tree_obj <- build_tree_matrix_capped(hc_tree, max_size = 50)
+rm(cor_mat); gc()
 
-# 3. Form aggregated tree features Z = X * A (leaves + all internal branches)
-Z_tr <- X_tree_tr %*% A_mat
-Z_te <- X_tree_te %*% A_mat
+# 4. Form aggregated tree matrix Z = X * A (all leaves + capped internal branches)
+Z_tr <- X_text_tr %*% tree_obj$A
+Z_te <- X_text_te %*% tree_obj$A
 
-# Combine unpenalized controls W with penalized tree features Z
 X_tag_tr <- cbind(X_ctrl[train_idx, ],  Z_tr)
 X_tag_te <- cbind(X_ctrl[-train_idx, ], Z_te)
 pf_tag   <- c(rep(0, p_ctrl), rep(1, ncol(Z_tr)))
 
-# 4. Fit Tree-Guided Aggregation via 10-fold CV in glmnet
+# 5. Fit Tree-Guided Aggregation via CV (nfolds = 5 keeps runtime ~1-2 min)
 set.seed(42)
-cv_tree_agg   <- cv.glmnet(X_tag_tr, y_tr, alpha = 1, penalty.factor = pf_tag)
+cv_tree_agg   <- cv.glmnet(X_tag_tr, y_tr, alpha = 1, penalty.factor = pf_tag, nfolds = 5)
 pred_tree_agg <- as.numeric(predict(cv_tree_agg, s = "lambda.min", newx = X_tag_te))
 
-# Evaluate for your horse race table
 print(round(eval_model(pred_tree_agg, y_te), 4))
 ```
 
 Inspect.
 
 ```{r}
-p_sub     <- length(tree_cols)
-gamma_hat <- as.numeric(coef(cv_tree_agg, s = "lambda.1se"))[-1][(p_ctrl + 1):ncol(X_tag_tr)]
+# 6. Inspect top fused skill clusters (at lambda.1se for parsimony)
+p_full_text <- ncol(X_text_tr)
+gamma_hat   <- as.numeric(coef(cv_tree_agg, s = "lambda.1se"))[-1][(p_ctrl + 1):ncol(X_tag_tr)]
+active_br   <- which(gamma_hat != 0 & seq_along(gamma_hat) > p_full_text)
 
-# Internal nodes (branches with >= 2 fused words) that are non-zero
-active_branches <- which(gamma_hat != 0 & seq_along(gamma_hat) > p_sub)
-cat("Active fused branches (at lambda.1se):", length(active_branches), "\n\n")
-
-# Sort by largest absolute effect and print top 10 clusters
-top_branches <- active_branches[order(abs(gamma_hat[active_branches]), decreasing = TRUE)]
-for (b in head(top_branches, 10)) {
-  words <- tree_cols[tree_obj$desc[[b]]]
-  if (length(words) <= 15) { # skip huge near-root branches for readability
-    cat(sprintf("Gamma = %+.4f | Words (%d): %s\n",
-                gamma_hat[b], length(words), paste(words, collapse = ", ")))
-  }
+cat("Active fused branches (at lambda.1se):", length(active_br), "\n")
+top_br <- active_br[order(abs(gamma_hat[active_br]), decreasing = TRUE)]
+for (b in head(top_br, 10)) {
+  words <- colnames(X_text_tr)[tree_obj$desc[[b]]]
+  cat(sprintf("Gamma = %+.4f | Words (%d): %s\n",
+              gamma_hat[b], length(words), paste(words, collapse = ", ")))
 }
+```
+
+Final predicitons:
+
+```{r}
+# --- Formal Prediction Comparison (Paired t-test on Test Squared Errors vs. Ridge) ---
+pred_list <- list(
+  Baseline_OLS    = pred_ols,
+  Full_OLS        = pred_full_ols,
+  Factor_PCA_30   = pred_fa,
+  Factor_PLS_CV   = pred_pls_cv,
+  Lasso           = pred_lasso,
+  Elastic_Net     = pred_elastic,
+  Adaptive_Lasso  = pred_adapt,
+  Hybrid_FA_Lasso = pred_hyb_lasso,
+  Hybrid_FA_ENet  = pred_hyb_elastic,
+  Tree_Agg_Lasso  = pred_tree_agg
+)
+
+e2_ridge <- (y_te - pred_ridge)^2
+
+dm_table <- do.call(rbind, lapply(names(pred_list), function(m_name) {
+  e2_m <- (y_te - pred_list[[m_name]])^2
+  diff <- e2_ridge - e2_m  # Negative = Ridge has lower squared error
+  tt   <- t.test(diff)
+  data.frame(
+    Model       = m_name,
+    MSPE_Diff   = round(mean(diff), 5),
+    t_stat      = round(as.numeric(tt$statistic), 3),
+    p_value     = signif(tt$p.value, 4),
+    Sig_5pct    = tt$p.value < 0.05,
+    stringsAsFactors = FALSE
+  )
+}))
+
+print(dm_table, row.names = FALSE)
+```
+Visual comparison.
+
+```{r}
+# install.packages("patchwork") # run once if not installed
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+
+# 1. Convert your `results` matrix into a clean plotting data frame
+results <- rbind(
+  Baseline_OLS     = eval_model(pred_ols,         y_te),
+  Full_OLS         = eval_model(pred_full_ols,    y_te),
+  Factor_PCA_30    = eval_model(pred_fa,          y_te),
+  Factor_PLS_CV    = eval_model(pred_pls_cv,      y_te),
+  Ridge            = eval_model(pred_ridge,       y_te),
+  Lasso            = eval_model(pred_lasso,       y_te),
+  Elastic_Net      = eval_model(pred_elastic,     y_te),
+  Adaptive_Lasso   = eval_model(pred_adapt,       y_te),
+  Hybrid_FA_Lasso  = eval_model(pred_hyb_lasso,   y_te),
+  Hybrid_FA_ENet   = eval_model(pred_hyb_elastic, y_te),
+  Tree_Agg_Lasso   = eval_model(pred_tree_agg,    y_te)   # <-- add this line
+)
+
+perf_df <- data.frame(
+  raw_name = rownames(results),
+  MSPE     = as.numeric(results[, "MSPE"]),
+  OOS_R2   = as.numeric(results[, "OOS_R2"]) * 100,
+  stringsAsFactors = FALSE
+)
+
+# Clean display labels and model families
+label_map <- c(
+  Baseline_OLS    = "Baseline OLS",
+  Full_OLS        = "Full OLS",
+  Factor_PCA_30   = "Factor PCA (30)",
+  Factor_PLS_CV   = "Factor PLS (CV)",
+  Ridge           = "Ridge",
+  Lasso           = "Lasso",
+  Elastic_Net     = "Elastic Net",
+  Adaptive_Lasso  = "Adaptive Lasso",
+  Hybrid_FA_Lasso = "Hybrid FA-Lasso",
+  Hybrid_FA_ENet  = "Hybrid FA-ENet",
+  Tree_Agg_Lasso  = "Tree-Guided Agg."
+)
+
+perf_df <- perf_df %>%
+  mutate(
+    Model = ifelse(raw_name %in% names(label_map), label_map[raw_name], raw_name),
+    Family = case_when(
+      raw_name %in% c("Baseline_OLS", "Full_OLS")                  ~ "OLS Benchmarks",
+      raw_name %in% c("Factor_PCA_30", "Factor_PLS_CV")            ~ "Factor / Dimension Reduction",
+      raw_name %in% c("Hybrid_FA_Lasso", "Hybrid_FA_ENet")         ~ "Hybrid Factor + Penalized",
+      raw_name %in% c("Tree_Agg_Lasso")                            ~ "Structured Fusion",
+      TRUE                                                         ~ "Penalized Regression"
+    ),
+    Family = factor(Family, levels = c(
+      "Penalized Regression",
+      "Hybrid Factor + Penalized",
+      "Factor / Dimension Reduction",
+      "Structured Fusion",
+      "OLS Benchmarks"
+    )),
+    # Order models so the lowest MSPE (best) is at the top
+    Model   = reorder(Model, -MSPE),
+    is_best = MSPE == min(MSPE),
+    mspe_lab = ifelse(is_best, sprintf("%.4f (Best)", MSPE), sprintf("%.4f", MSPE)),
+    r2_lab   = sprintf("%.2f%%", OOS_R2)
+  )
+
+# Benchmark values for Full OLS reference line
+ols_mspe <- perf_df$MSPE[perf_df$raw_name == "Full_OLS"]
+ols_r2   <- perf_df$OOS_R2[perf_df$raw_name == "Full_OLS"]
+
+pal <- c(
+  "Penalized Regression"         = "#1B4F72",
+  "Hybrid Factor + Penalized"    = "#148F77",
+  "Factor / Dimension Reduction" = "#D4AC0D",
+  "Structured Fusion"            = "#8E44AD",
+  "OLS Benchmarks"               = "#7F8C8D"
+)
+
+# 2. Panel A: Out-of-Sample MSPE (Lower is Better)
+p_mspe <- ggplot(perf_df, aes(x = MSPE, y = Model, fill = Family)) +
+  geom_vline(xintercept = ols_mspe, linetype = "dashed", color = "#C0392B", linewidth = 0.7) +
+  geom_col(width = 0.65) +
+  geom_text(aes(label = mspe_lab, fontface = ifelse(is_best, "bold", "plain")),
+            hjust = -0.1, size = 3.2, color = "#2C3E50") +
+  annotate("label", x = ols_mspe, y = nrow(perf_df) + 0.85,
+           label = sprintf("Full OLS (%.4f)", ols_mspe),
+           size = 2.8, fontface = "bold", color = "#C0392B",
+           fill = "#FDEDEC", linewidth = 0.25) +
+  scale_fill_manual(values = pal, drop = TRUE) +
+  scale_x_continuous(limits = c(0, max(perf_df$MSPE) * 1.25), expand = c(0, 0)) +
+  scale_y_discrete(expand = expansion(add = c(0.6, 1.35))) +
+  labs(
+    title = "Out-of-Sample Prediction Error (MSPE)",
+    x     = "Test MSPE (Lower is Better)",
+    y     = NULL,
+    fill  = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    plot.title         = element_text(face = "bold", color = "#1B365D", size = 11.5),
+    axis.text.y        = element_text(color = "black", size = 10),
+    plot.margin        = margin(5, 18, 5, 5)  # prevents 0.25 and 0 from touching
+  )
+
+# 3. Panel B: Out-of-Sample R^2 (Higher is Better)
+p_r2 <- ggplot(perf_df, aes(x = OOS_R2, y = Model, fill = Family)) +
+  geom_vline(xintercept = ols_r2, linetype = "dashed", color = "#C0392B", linewidth = 0.7) +
+  geom_col(width = 0.65) +
+  geom_text(aes(label = r2_lab, fontface = ifelse(is_best, "bold", "plain")),
+            hjust = -0.12, size = 3.2, color = "#2C3E50") +
+  annotate("label", x = ols_r2, y = nrow(perf_df) + 0.85,
+           label = sprintf("Full OLS (%.2f%%)", ols_r2),
+           size = 2.8, fontface = "bold", color = "#C0392B",
+           fill = "#FDEDEC", linewidth = 0.25) +
+  scale_fill_manual(values = pal, drop = TRUE) +
+  scale_x_continuous(limits = c(0, max(perf_df$OOS_R2) * 1.22), expand = c(0, 0)) +
+  scale_y_discrete(expand = expansion(add = c(0.6, 1.35))) +
+  labs(
+    title = "Out-of-Sample Variance Explained (R²)",
+    x     = "Out-of-Sample R² % (Higher is Better)",
+    y     = NULL,
+    fill  = NULL
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    plot.title         = element_text(face = "bold", color = "#1B365D", size = 11.5),
+    axis.text.y        = element_blank(),
+    plot.margin        = margin(5, 10, 5, 10)
+  )
+
+# 4. Combine panels with single-row horizontal legend
+p_horse_race <- (p_mspe | p_r2) +
+  plot_layout(guides = "collect") +
+  plot_annotation(
+    title    = "Model Performance Horse Race: Predicting US Log Annual Wages",
+    subtitle = paste0("20% Held-Out Test Set (N = ", format(nrow(jobs), big.mark = ","),
+                      " US LinkedIn Postings; p_text = ", format(p_text, big.mark = ","),
+                      " TF-IDF Features + Controls)"),
+    theme = theme(
+      legend.position = "bottom",
+      plot.title      = element_text(face = "bold", size = 13.5, color = "#1B365D", hjust = 0.5),
+      plot.subtitle   = element_text(size = 10, color = "#5A6772", hjust = 0.5)
+    )
+  ) & guides(fill = guide_legend(nrow = 1))
+
+print(p_horse_race)
+ggsave("model_performance_comparison.png", plot = p_horse_race, width = 12, height = 5.8, dpi = 300)
 ```
 
